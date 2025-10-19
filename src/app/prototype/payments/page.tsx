@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import Header from '../../../components/Header'
 import SidebarNav from '@/components/SidebarNav'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([])
@@ -20,70 +21,20 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { 
-    fetchAll() 
+    fetchAll()
   }, [])
 
   async function fetchAll() {
     try {
       setLoading(true)
-      // Mock data simulation
-      const mockPayments = [
-        { 
-          id: 1, 
-          method: 'CREDIT_CARD', 
-          paidAmount: 1125, 
-          paidOn: new Date('2024-01-20'),
-          txRef: 'TX-0012345678',
-          assessId: 1,
-          status: 'COMPLETED',
-          propertyAddress: '123 Main Street'
-        },
-        { 
-          id: 2, 
-          method: 'BANK_TRANSFER', 
-          paidAmount: 900, 
-          paidOn: new Date('2024-01-18'),
-          txRef: 'TX-0023456789',
-          assessId: 2,
-          status: 'COMPLETED',
-          propertyAddress: '456 Oak Avenue'
-        },
-        { 
-          id: 3, 
-          method: 'UPI', 
-          paidAmount: 1440, 
-          paidOn: new Date('2024-01-15'),
-          txRef: 'TX-0034567890',
-          assessId: 3,
-          status: 'COMPLETED',
-          propertyAddress: '789 Pine Road'
-        }
-      ]
-
-      const mockAssessments = [
-        { 
-          id: 1, 
-          financialYear: '2024-2025', 
-          assessedValue: 250000, 
-          totalDue: 1125,
-          propertyAddress: '123 Main Street',
-          status: 'DUE'
-        },
-        { 
-          id: 2, 
-          financialYear: '2024-2025', 
-          assessedValue: 180000, 
-          totalDue: 900,
-          propertyAddress: '456 Oak Avenue',
-          status: 'PAID'
-        }
-      ]
-
-      setTimeout(() => {
-        setPayments(mockPayments)
-        setAssessments(mockAssessments)
-        setLoading(false)
-      }, 1000)
+      const [{ data: pRows, error: pErr }, { data: aRows, error: aErr }] = await Promise.all([
+        supabase.from('payment').select('*'),
+        supabase.from('assessment').select('*')
+      ])
+      if (pErr || aErr) throw pErr || aErr
+      setPayments((pRows ?? []).map((r: any) => ({ id: r.payment_id ?? r.id, method: r.payment_method ?? r.method, paidAmount: Number(r.paid_amount ?? r.paidAmount), paidOn: new Date(r.paid_on ?? r.paidOn), txRef: r.transaction_ref ?? r.txRef, assessId: r.assess_id ?? r.assessId, status: r.payment_status ?? r.status, propertyAddress: r.property_address ?? r.propertyAddress ?? '' })))
+      setAssessments((aRows ?? []).map((r: any) => ({ id: r.assess_id ?? r.id, financialYear: r.financial_year, assessedValue: Number(r.assessed_value ?? r.assessedValue), totalDue: Number(r.total_due ?? r.totalDue), propertyAddress: r.property_address ?? r.propertyAddress ?? '', status: r.status })))
+      setLoading(false)
     } catch (e) { 
       setPayments([])
       setAssessments([])
@@ -93,21 +44,13 @@ export default function PaymentsPage() {
 
   async function handlePay(payment: any) {
     try {
-      // Simulate API call
-      const newPayment = {
-        ...payment,
-        id: Date.now(),
-        status: 'COMPLETED',
-        propertyAddress: assessments.find(a => a.id === payment.assessId)?.propertyAddress || 'Unknown Property'
-      }
-      setPayments(prev => [newPayment, ...prev])
       
-      // Update assessment status
-      setAssessments(prev => prev.map(assessment => 
-        assessment.id === payment.assessId 
-          ? { ...assessment, status: 'PAID', totalDue: 0 }
-          : assessment
-      ))
+      const payload = { assess_id: payment.assessId, paid_amount: payment.paidAmount, payment_method: payment.method, transaction_ref: payment.txRef }
+      const { data: created, error } = await supabase.from('payment').insert([payload]).select().single()
+      if (error) throw error
+      setPayments(prev => [{ id: created.payment_id ?? created.id, method: created.payment_method ?? created.method, paidAmount: Number(created.paid_amount ?? created.paidAmount), paidOn: new Date(created.paid_on ?? created.paidOn), txRef: created.transaction_ref ?? created.txRef, assessId: created.assess_id ?? created.assessId, status: created.payment_status ?? created.status, propertyAddress: '' }, ...prev])
+      // update assessment locally if returned / refetch list
+      await fetchAll()
     } catch (e) { 
       console.error(e) 
     }

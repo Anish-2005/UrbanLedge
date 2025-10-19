@@ -18,13 +18,20 @@ const navigation: NavItem[] = [
 ]
 
 export default function SidebarNav({ className = '' }: { className?: string }) {
-  // render with client-side active detection
-  const path = typeof window !== 'undefined' ? window.location.pathname : ''
+  // Avoid hydration mismatch: don't compute `isCurrent` during SSR.
+  // Render non-active markup on first paint, then enable active detection after mount.
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // safe path (only available after mount)
+  const path = mounted && typeof window !== 'undefined' ? window.location.pathname : ''
 
   return (
     <nav className={`bg-white rounded-2xl shadow-sm p-4 space-y-2 border border-gray-100 ${className}`}>
       {navigation.map((item) => {
-        const isCurrent = path === item.href
+        const isCurrent = mounted && path === item.href
         const Icon = item.icon
         return (
           <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${isCurrent ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>

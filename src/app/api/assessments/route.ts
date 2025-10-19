@@ -9,8 +9,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   await ensureTables()
-  const authHeader = req.headers.get('authorization')
-  if (!authHeader) return new NextResponse('Unauthorized', { status: 401 })
+  const requireAuth = process.env.REQUIRE_AUTH === 'true'
+  if (requireAuth) {
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader) return new NextResponse('Unauthorized', { status: 401 })
+  }
   const body = await req.json()
   const { property_id, financial_year, assessed_value, base_tax, exemption_pct, penalty, total_due } = body
   const res = await query(

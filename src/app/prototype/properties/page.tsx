@@ -3,80 +3,44 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Home, MapPin, FileText, CreditCard, Settings, Search, 
-  Plus, Edit2, Trash2, Building, Users, Calendar,
-  ArrowRight, ChevronRight, DollarSign, Target,
-  HomeIcon, MapPinned, SquareStack
+  Plus, Edit2, Trash2, Building, Users, Calendar, MapPinned, SquareStack
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
+import { supabase } from '@/lib/supabaseClient'
+
 export default function PropertiesPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => { 
-    fetchList() 
-  }, [])
+  useEffect(() => { fetchList() }, [])
 
   async function fetchList() {
     try {
       setLoading(true)
-      // Mock data simulation
-      const mockProperties = [
-        { 
-          id: 1, 
-          address: '123 Main Street', 
-          ward: 'Ward 1', 
-          ptype: 'Residential', 
-          usage: 'Single Family', 
-          landArea: 500, 
-          builtArea: 200,
-          owner: 'John Doe',
-          status: 'Active',
-          lastAssessment: '2024-01-15'
-        },
-        { 
-          id: 2, 
-          address: '456 Oak Avenue', 
-          ward: 'Ward 2', 
-          ptype: 'Commercial', 
-          usage: 'Retail', 
-          landArea: 800, 
-          builtArea: 400,
-          owner: 'Sarah Wilson',
-          status: 'Active',
-          lastAssessment: '2024-01-10'
-        },
-        { 
-          id: 3, 
-          address: '789 Pine Road', 
-          ward: 'Ward 1', 
-          ptype: 'Residential', 
-          usage: 'Multi Family', 
-          landArea: 600, 
-          builtArea: 350,
-          owner: 'Mike Johnson',
-          status: 'Pending',
-          lastAssessment: '2024-01-05'
-        },
-        { 
-          id: 4, 
-          address: '321 Elm Street', 
-          ward: 'Ward 3', 
-          ptype: 'Industrial', 
-          usage: 'Warehouse', 
-          landArea: 1200, 
-          builtArea: 800,
-          owner: 'TechCorp Inc.',
-          status: 'Active',
-          lastAssessment: '2024-01-20'
-        }
-      ]
-      setTimeout(() => {
-        setItems(mockProperties)
-        setLoading(false)
-      }, 1000)
-    } catch (e) {
+      setError(null)
+      const { data: rows, error } = await supabase.from('property').select('*')
+      if (error) throw error
+      const mapped = (rows ?? []).map((r: any) => ({
+        id: r.property_id ?? r.id,
+        address: r.address,
+        ward: r.ward,
+        ptype: r.ptype,
+        usage: r.usage,
+        landArea: Number(r.land_area ?? r.landArea ?? 0),
+        builtArea: Number(r.built_area ?? r.builtArea ?? 0),
+        owner: r.owner_id ?? r.owner ?? null,
+        status: 'Active',
+        lastAssessment: r.created_at ?? r.createdAt ?? new Date().toISOString()
+      }))
+      setItems(mapped)
+      setLoading(false)
+    } catch (err) {
+      console.error('fetch properties error:', err)
+      const e: any = err
+      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
+      setError(message)
       setItems([])
       setLoading(false)
     }
@@ -85,43 +49,114 @@ export default function PropertiesPage() {
   async function handleDelete(id: number | string) {
     if (!confirm('Are you sure you want to delete this property?')) return
     try {
-      // Simulate API call
+      const { error } = await supabase.from('property').delete().eq('property_id', id)
+      if (error) throw error
       setItems(prev => prev.filter(item => item.id !== id))
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      // Normalize error message for different shapes (Error, Supabase error, plain object)
+      console.error('delete property error:', err)
+      const e: any = err
+      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
+      setError(message)
     }
   }
 
   async function handleAdd() {
     try {
-      const newProperty = {
-        id: Date.now(),
-        address: 'New Property Address',
-        ward: 'Ward 1',
-        ptype: 'Residential',
-        usage: 'Single Family',
-        landArea: 0,
-        builtArea: 0,
-        owner: 'New Owner',
-        status: 'Draft',
-        lastAssessment: new Date().toISOString().split('T')[0]
+      setError(null)
+      // Build a clean payload using FK ids (ward_id, ptype_id). Use owner_id=1 for prototype.
+      const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
+
+      // Resolve ward name -> ward_id
+      let wardId: number | null = null
+      try {
+        const { data: wards } = await supabase.from('ward').select('ward_id,name').eq('name', payload.ward).limit(1).maybeSingle()
+        if (wards && (wards as any).ward_id) wardId = (wards as any).ward_id
+        else {
+          const { data: newWard } = await supabase.from('ward').insert([{ name: payload.ward, area_description: '' }]).select('ward_id').maybeSingle()
+          wardId = newWard ? (newWard as any).ward_id : null
+        }
+      } catch (e) { console.warn('ward lookup/create failed', e) }
+
+      // Resolve ptype name -> ptype_id
+      let ptypeId: number | null = null
+      try {
+        const { data: ptypes } = await supabase.from('property_type').select('ptype_id,name').eq('name', payload.ptype).limit(1).maybeSingle()
+        if (ptypes && (ptypes as any).ptype_id) ptypeId = (ptypes as any).ptype_id
+        else {
+          const { data: newPtype } = await supabase.from('property_type').insert([{ name: payload.ptype, description: '' }]).select('ptype_id').maybeSingle()
+          ptypeId = newPtype ? (newPtype as any).ptype_id : null
+        }
+      } catch (e) { console.warn('ptype lookup/create failed', e) }
+
+      const insertBody: any = {
+        owner_id: 1,
+        ward_id: wardId,
+        ptype_id: ptypeId,
+        address: payload.address,
+        land_area: payload.land_area,
+        built_area: payload.built_area,
+        usage: payload.usage
       }
-      setItems(prev => [newProperty, ...prev])
-    } catch (e) {
-      console.error(e)
+
+      const { data, error } = await supabase.from('property').insert([insertBody]).select().single()
+      // Handle Supabase/PostgREST errors gracefully — don't throw raw objects
+      if (error) {
+        // Supabase error may be opaque/empty in some environments (CORS, network failure, etc.).
+        // Collect deep diagnostics so the browser console shows useful info for triage.
+        let details = 'unserializable error'
+        try {
+          details = JSON.stringify(error, Object.getOwnPropertyNames(error))
+        } catch (jsonErr) {
+          try { details = String(error) } catch { details = 'unknown error' }
+        }
+
+        const ctorName = error && (error as any).constructor ? (error as any).constructor.name : typeof error
+        let protoInfo = null
+        try { protoInfo = Object.getPrototypeOf(error) } catch {}
+        let descriptors = null
+        try { descriptors = Object.getOwnPropertyDescriptors(error || {}) } catch {}
+        let symbols = null
+        try { symbols = Object.getOwnPropertySymbols(error || {}) } catch {}
+
+        console.error('supabase insert returned error (diagnostics):', {
+          error,
+          details,
+          ctorName,
+          protoInfo,
+          descriptors,
+          symbolKeys: (symbols || []).map(s => s.toString()),
+          keys: Object.keys(error || {}),
+          entries: Object.entries(error || {})
+        })
+
+        const fallbackMsg = 'Supabase insert failed — check browser Network tab, NEXT_PUBLIC keys, and RLS/policies. See console for diagnostics.'
+        const msg = (error as any)?.message ?? (error as any)?.details ?? (details && details !== '{}' ? details : fallbackMsg)
+        setError(msg)
+        return
+      }
+      if (!data) {
+        console.error('supabase insert returned no data and no error', { data, error, insertBody })
+        setError('No data returned from insert')
+        return
+      }
+      const created = data
+      setItems(prev => [{ id: created.property_id ?? created.id, address: created.address, ward: created.ward, ptype: created.ptype, usage: created.usage, landArea: Number(created.land_area), builtArea: Number(created.built_area), owner: created.owner_id ?? created.owner, status: 'Active', lastAssessment: created.created_at ?? created.createdAt }, ...prev])
+    } catch (err) {
+      console.error('create property error:', err)
+      const e: any = err
+      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
+      setError(message)
     }
   }
 
   function handleEdit(property: any) {
-    // In a real app, this would open a modal or navigate to edit page
     alert(`Edit property: ${property.address}`)
   }
 
-  // navigation moved to SidebarNav
-
   const stats = [
     { label: 'Total Properties', value: items.length.toString(), icon: Building, color: 'bg-blue-500' },
-    { label: 'Active Properties', value: items.filter(p => p.status === 'Active').length.toString(), icon: HomeIcon, color: 'bg-green-500' },
+    { label: 'Active Properties', value: items.filter(p => p.status === 'Active').length.toString(), icon: MapPinned, color: 'bg-green-500' },
     { label: 'Total Wards', value: '4', icon: MapPinned, color: 'bg-purple-500' },
     { label: 'Avg. Land Area', value: '775m²', icon: SquareStack, color: 'bg-orange-500' },
   ]
@@ -145,11 +180,11 @@ export default function PropertiesPage() {
               {property.ptype} • {property.usage}
             </span>
           </div>
-          
+
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {property.address}
           </h3>
-          
+
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
             <div className="flex items-center gap-2">
               <Users size={14} className="text-gray-400" />
@@ -188,7 +223,7 @@ export default function PropertiesPage() {
         }`}>
           {property.status}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }}

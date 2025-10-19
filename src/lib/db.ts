@@ -2,15 +2,22 @@
 
 import { Pool } from 'pg'
 
-const connectionString = process.env.DATABASE_URL
-if (!connectionString) {
-  throw new Error('DATABASE_URL not set')
+// Lazily initialize pool so module import doesn't throw when DATABASE_URL is missing.
+let pool: Pool | null = null
+
+function getPool() {
+  if (pool) return pool
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error('DATABASE_URL not set')
+  }
+  pool = new Pool({ connectionString })
+  return pool
 }
 
-const pool = new Pool({ connectionString })
-
 export async function query(text: string, params?: any[]) {
-  const client = await pool.connect()
+  const p = getPool()
+  const client = await p.connect()
   try {
     const res = await client.query(text, params)
     return res

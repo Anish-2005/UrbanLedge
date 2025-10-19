@@ -9,8 +9,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   await ensureTables()
-  const authHeader = req.headers.get('authorization')
-  if (!authHeader) return new NextResponse('Unauthorized', { status: 401 })
+  const requireAuth = process.env.REQUIRE_AUTH === 'true'
+  if (requireAuth) {
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader) return new NextResponse('Unauthorized', { status: 401 })
+  }
   const body = await req.json()
   const { assess_id, paid_amount, payment_method, transaction_ref } = body
 
@@ -24,11 +27,15 @@ export async function POST(req: Request) {
   const payment = p.rows[0]
 
   // create receipt
-  const receiptNo = 'RCPT-' + Date.now()
+  const receiptNo = 'RCPT-' + toISOStringCompact(new Date()) + '-' + payment.payment_id
   const r = await query('INSERT INTO receipt(payment_id, receipt_no) VALUES($1,$2) RETURNING *', [payment.payment_id, receiptNo])
 
-  // Optionally update assessment total_due (simple subtract)
-  await query('UPDATE assessment SET total_due = GREATEST(COALESCE(total_due,0) - $1, 0) WHERE assess_id = $2', [paid_amount, assess_id])
+  // Update assessment total_due and status atomically
+  await query('UPDATE assessment SET total_due = GREATEST(COALESCE(total_due,0) - $1, 0), status = CASE WHEN GREATEST(COALESCE(total_due,0) - $1, 0) = 0 THEN $3 WHEN GREATEST(COALESCE(total_due,0) - $1, 0) < COALESCE(total_due,0) THEN $4 ELSE $5 END WHERE assess_id = $2', [paid_amount, assess_id, 'PAID', 'PARTIAL', 'DUE'])
 
   return NextResponse.json({ payment, receipt: r.rows[0] })
+}
+
+function toISOStringCompact(d: Date) {
+  return d.toISOString().replace(/[:-]|\.|Z/g, '')
 }

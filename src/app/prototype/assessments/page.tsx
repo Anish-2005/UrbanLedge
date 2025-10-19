@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function AssessmentsPage() {
   const [items, setItems] = useState<any[]>([])
@@ -20,11 +21,7 @@ export default function AssessmentsPage() {
   useEffect(() => { 
     fetchList() 
     // Mock properties for dropdown
-    setProperties([
-      { id: 1, address: '123 Main Street', ward: 'Ward 1' },
-      { id: 2, address: '456 Oak Avenue', ward: 'Ward 2' },
-      { id: 3, address: '789 Pine Road', ward: 'Ward 1' }
-    ])
+    fetchProperties()
   }, [])
 
   const [properties, setProperties] = useState<any[]>([])
@@ -32,68 +29,50 @@ export default function AssessmentsPage() {
   async function fetchList() {
     try {
       setLoading(true)
-      // Mock data simulation
-      const mockAssessments = [
-        { 
-          id: 1, 
-          financialYear: '2024-2025', 
-          assessedValue: 250000, 
-          baseTax: 1250,
-          exemptionPct: 10,
-          penalty: 0,
-          totalDue: 1125,
-          status: 'DUE',
-          propertyId: 1,
-          propertyAddress: '123 Main Street',
-          createdAt: '2024-01-15'
-        },
-        { 
-          id: 2, 
-          financialYear: '2024-2025', 
-          assessedValue: 180000, 
-          baseTax: 900,
-          exemptionPct: 5,
-          penalty: 45,
-          totalDue: 900,
-          status: 'PAID',
-          propertyId: 2,
-          propertyAddress: '456 Oak Avenue',
-          createdAt: '2024-01-10'
-        },
-        { 
-          id: 3, 
-          financialYear: '2024-2025', 
-          assessedValue: 320000, 
-          baseTax: 1600,
-          exemptionPct: 15,
-          penalty: 80,
-          totalDue: 1440,
-          status: 'OVERDUE',
-          propertyId: 3,
-          propertyAddress: '789 Pine Road',
-          createdAt: '2024-01-05'
-        }
-      ]
-      setTimeout(() => {
-        setItems(mockAssessments)
-        setLoading(false)
-      }, 1000)
+      const { data: rows, error } = await supabase.from('assessment').select('*, property:property_id(address)')
+      if (error) throw error
+      const mapped = rows.map((r: any) => ({
+        id: r.assess_id,
+        financialYear: r.financial_year,
+        assessedValue: Number(r.assessed_value),
+        baseTax: Number(r.base_tax),
+        exemptionPct: Number(r.exemption_pct || r.exemptionPct || 0),
+        penalty: Number(r.penalty || 0),
+        totalDue: Number(r.total_due),
+        status: r.status,
+        propertyId: r.property_id,
+        propertyAddress: r.property?.address || r.address || '',
+        createdAt: r.created_at
+      }))
+      setItems(mapped)
+      setLoading(false)
     } catch (e) {
       setItems([])
       setLoading(false)
     }
   }
+  async function fetchProperties() {
+    try {
+      const { data: rows, error } = await supabase.from('property').select('*')
+      if (error) return
+      setProperties((rows ?? []).map((r: any) => ({ id: r.property_id ?? r.id, address: r.address, ward: r.ward })))
+    } catch (e) { /* ignore */ }
+  }
 
   async function handleSave(assessment: any) {
     try {
-      // Simulate API call
-      const newAssessment = {
-        ...assessment,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        propertyAddress: properties.find(p => p.id === assessment.propertyId)?.address || 'Unknown Property'
+      const payload = {
+        property_id: assessment.propertyId,
+        financial_year: assessment.financialYear,
+        assessed_value: assessment.assessedValue,
+        base_tax: assessment.baseTax,
+        exemption_pct: assessment.exemptionPct,
+        penalty: assessment.penalty,
+        total_due: assessment.totalDue
       }
-      setItems(prev => [newAssessment, ...prev])
+      const { data: created, error } = await supabase.from('assessment').insert([payload]).select().single()
+      if (error) throw error
+      setItems(prev => [{ id: created.assess_id, financialYear: created.financial_year, assessedValue: Number(created.assessed_value), baseTax: Number(created.base_tax), exemptionPct: Number(created.exemption_pct || 0), penalty: Number(created.penalty || 0), totalDue: Number(created.total_due), status: created.status, propertyId: created.property_id, propertyAddress: properties.find(p => p.id === created.property_id)?.address || '', createdAt: created.created_at }, ...prev])
     } catch (e) { 
       console.error(e) 
     }
@@ -101,9 +80,10 @@ export default function AssessmentsPage() {
 
   async function handleMarkPaid(id: number) {
     try {
-      setItems(prev => prev.map(item => 
-        item.id === id ? { ...item, status: 'PAID', penalty: 0 } : item
-      ))
+      // mark paid: create a payment and update assessment status locally
+      const { data: updated, error } = await supabase.from('assessment').update({ status: 'PAID', total_due: 0 }).eq('assess_id', id).select().single()
+      if (error) throw error
+      setItems(prev => prev.map(item => item.id === updated.assess_id ? { ...item, status: updated.status, totalDue: Number(updated.total_due) } : item))
     } catch (e) { 
       console.error(e) 
     }
