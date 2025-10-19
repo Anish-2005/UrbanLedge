@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { supabase } from '@/lib/supabaseClient'
+import { mockService } from '@/lib/mockService'
 
 export default function AssessmentsPage() {
   const [items, setItems] = useState<any[]>([])
@@ -29,20 +29,19 @@ export default function AssessmentsPage() {
   async function fetchList() {
     try {
       setLoading(true)
-      const { data: rows, error } = await supabase.from('assessment').select('*, property:property_id(address)')
-      if (error) throw error
+      const rows = mockService.assessments.list()
       const mapped = rows.map((r: any) => ({
-        id: r.assess_id,
-        financialYear: r.financial_year,
-        assessedValue: Number(r.assessed_value),
-        baseTax: Number(r.base_tax),
-        exemptionPct: Number(r.exemption_pct || r.exemptionPct || 0),
+        id: r.id,
+        financialYear: r.financialYear,
+        assessedValue: Number(r.assessedValue),
+        baseTax: Number(r.baseTax),
+        exemptionPct: Number(r.exemptionPct || 0),
         penalty: Number(r.penalty || 0),
-        totalDue: Number(r.total_due),
+        totalDue: Number(r.totalDue),
         status: r.status,
-        propertyId: r.property_id,
-        propertyAddress: r.property?.address || r.address || '',
-        createdAt: r.created_at
+        propertyId: r.propertyId,
+        propertyAddress: mockService.properties.list().find(p => p.id === r.propertyId)?.address || '',
+        createdAt: new Date().toISOString()
       }))
       setItems(mapped)
       setLoading(false)
@@ -53,9 +52,8 @@ export default function AssessmentsPage() {
   }
   async function fetchProperties() {
     try {
-      const { data: rows, error } = await supabase.from('property').select('*')
-      if (error) return
-      setProperties((rows ?? []).map((r: any) => ({ id: r.property_id ?? r.id, address: r.address, ward: r.ward })))
+  const rows = mockService.properties.list()
+  setProperties((rows ?? []).map((r: any) => ({ id: r.id, address: r.address, ward: r.ward })))
     } catch (e) { /* ignore */ }
   }
 
@@ -70,9 +68,9 @@ export default function AssessmentsPage() {
         penalty: assessment.penalty,
         total_due: assessment.totalDue
       }
-      const { data: created, error } = await supabase.from('assessment').insert([payload]).select().single()
-      if (error) throw error
-      setItems(prev => [{ id: created.assess_id, financialYear: created.financial_year, assessedValue: Number(created.assessed_value), baseTax: Number(created.base_tax), exemptionPct: Number(created.exemption_pct || 0), penalty: Number(created.penalty || 0), totalDue: Number(created.total_due), status: created.status, propertyId: created.property_id, propertyAddress: properties.find(p => p.id === created.property_id)?.address || '', createdAt: created.created_at }, ...prev])
+  const newA = { id: 'a' + Date.now(), propertyId: String(assessment.propertyId), financialYear: assessment.financialYear, assessedValue: Number(assessment.assessedValue), baseTax: Number(assessment.baseTax), exemptionPct: Number(assessment.exemptionPct || 0), penalty: Number(assessment.penalty || 0), totalDue: Number(assessment.totalDue), status: 'DUE' as const }
+  mockService.assessments.create(newA)
+  setItems(prev => [{ id: newA.id, financialYear: newA.financialYear, assessedValue: Number(newA.assessedValue), baseTax: Number(newA.baseTax), exemptionPct: Number(newA.exemptionPct || 0), penalty: Number(newA.penalty || 0), totalDue: Number(newA.totalDue), status: newA.status, propertyId: newA.propertyId, propertyAddress: properties.find(p => p.id === newA.propertyId)?.address || '', createdAt: new Date().toISOString() }, ...prev])
     } catch (e) { 
       console.error(e) 
     }
@@ -81,9 +79,15 @@ export default function AssessmentsPage() {
   async function handleMarkPaid(id: number) {
     try {
       // mark paid: create a payment and update assessment status locally
-      const { data: updated, error } = await supabase.from('assessment').update({ status: 'PAID', total_due: 0 }).eq('assess_id', id).select().single()
-      if (error) throw error
-      setItems(prev => prev.map(item => item.id === updated.assess_id ? { ...item, status: updated.status, totalDue: Number(updated.total_due) } : item))
+  const assessments = mockService.assessments.list()
+  const idx = assessments.findIndex(a => a.id === String(id))
+      if (idx >= 0) {
+        const a = assessments[idx]
+        a.totalDue = 0
+        a.status = 'PAID'
+        mockService.assessments.update(a)
+        setItems(prev => prev.map(item => item.id === a.id ? { ...item, status: a.status, totalDue: Number(a.totalDue) } : item))
+      }
     } catch (e) { 
       console.error(e) 
     }

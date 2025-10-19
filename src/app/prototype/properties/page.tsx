@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { supabase } from '@/lib/supabaseClient'
+import { mockService } from '@/lib/mockService'
 
 export default function PropertiesPage() {
   const [items, setItems] = useState<any[]>([])
@@ -20,19 +20,18 @@ export default function PropertiesPage() {
     try {
       setLoading(true)
       setError(null)
-      const { data: rows, error } = await supabase.from('property').select('*')
-      if (error) throw error
+      const rows = mockService.properties.list()
       const mapped = (rows ?? []).map((r: any) => ({
-        id: r.property_id ?? r.id,
+        id: r.id,
         address: r.address,
         ward: r.ward,
         ptype: r.ptype,
         usage: r.usage,
-        landArea: Number(r.land_area ?? r.landArea ?? 0),
-        builtArea: Number(r.built_area ?? r.builtArea ?? 0),
-        owner: r.owner_id ?? r.owner ?? null,
+        landArea: Number(r.landArea ?? 0),
+        builtArea: Number(r.builtArea ?? 0),
+        owner: r.ownerId ?? null,
         status: 'Active',
-        lastAssessment: r.created_at ?? r.createdAt ?? new Date().toISOString()
+        lastAssessment: new Date().toISOString()
       }))
       setItems(mapped)
       setLoading(false)
@@ -49,9 +48,8 @@ export default function PropertiesPage() {
   async function handleDelete(id: number | string) {
     if (!confirm('Are you sure you want to delete this property?')) return
     try {
-      const { error } = await supabase.from('property').delete().eq('property_id', id)
-      if (error) throw error
-      setItems(prev => prev.filter(item => item.id !== id))
+  mockService.properties.delete(String(id))
+  setItems(prev => prev.filter(item => item.id !== id))
     } catch (err) {
       // Normalize error message for different shapes (Error, Supabase error, plain object)
       console.error('delete property error:', err)
@@ -67,81 +65,19 @@ export default function PropertiesPage() {
       // Build a clean payload using FK ids (ward_id, ptype_id). Use owner_id=1 for prototype.
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
 
-      // Resolve ward name -> ward_id
-      let wardId: number | null = null
-      try {
-        const { data: wards } = await supabase.from('ward').select('ward_id,name').eq('name', payload.ward).limit(1).maybeSingle()
-        if (wards && (wards as any).ward_id) wardId = (wards as any).ward_id
-        else {
-          const { data: newWard } = await supabase.from('ward').insert([{ name: payload.ward, area_description: '' }]).select('ward_id').maybeSingle()
-          wardId = newWard ? (newWard as any).ward_id : null
-        }
-      } catch (e) { console.warn('ward lookup/create failed', e) }
-
-      // Resolve ptype name -> ptype_id
-      let ptypeId: number | null = null
-      try {
-        const { data: ptypes } = await supabase.from('property_type').select('ptype_id,name').eq('name', payload.ptype).limit(1).maybeSingle()
-        if (ptypes && (ptypes as any).ptype_id) ptypeId = (ptypes as any).ptype_id
-        else {
-          const { data: newPtype } = await supabase.from('property_type').insert([{ name: payload.ptype, description: '' }]).select('ptype_id').maybeSingle()
-          ptypeId = newPtype ? (newPtype as any).ptype_id : null
-        }
-      } catch (e) { console.warn('ptype lookup/create failed', e) }
-
-      const insertBody: any = {
-        owner_id: 1,
-        ward_id: wardId,
-        ptype_id: ptypeId,
+      // Create property locally via mockService
+      const newProp = {
+        id: 'p' + Date.now(),
+        ownerId: 'u2',
         address: payload.address,
-        land_area: payload.land_area,
-        built_area: payload.built_area,
+        ward: payload.ward,
+        ptype: payload.ptype,
+        landArea: payload.land_area,
+        builtArea: payload.built_area,
         usage: payload.usage
       }
-
-      const { data, error } = await supabase.from('property').insert([insertBody]).select().single()
-      // Handle Supabase/PostgREST errors gracefully — don't throw raw objects
-      if (error) {
-        // Supabase error may be opaque/empty in some environments (CORS, network failure, etc.).
-        // Collect deep diagnostics so the browser console shows useful info for triage.
-        let details = 'unserializable error'
-        try {
-          details = JSON.stringify(error, Object.getOwnPropertyNames(error))
-        } catch (jsonErr) {
-          try { details = String(error) } catch { details = 'unknown error' }
-        }
-
-        const ctorName = error && (error as any).constructor ? (error as any).constructor.name : typeof error
-        let protoInfo = null
-        try { protoInfo = Object.getPrototypeOf(error) } catch {}
-        let descriptors = null
-        try { descriptors = Object.getOwnPropertyDescriptors(error || {}) } catch {}
-        let symbols = null
-        try { symbols = Object.getOwnPropertySymbols(error || {}) } catch {}
-
-        console.error('supabase insert returned error (diagnostics):', {
-          error,
-          details,
-          ctorName,
-          protoInfo,
-          descriptors,
-          symbolKeys: (symbols || []).map(s => s.toString()),
-          keys: Object.keys(error || {}),
-          entries: Object.entries(error || {})
-        })
-
-        const fallbackMsg = 'Supabase insert failed — check browser Network tab, NEXT_PUBLIC keys, and RLS/policies. See console for diagnostics.'
-        const msg = (error as any)?.message ?? (error as any)?.details ?? (details && details !== '{}' ? details : fallbackMsg)
-        setError(msg)
-        return
-      }
-      if (!data) {
-        console.error('supabase insert returned no data and no error', { data, error, insertBody })
-        setError('No data returned from insert')
-        return
-      }
-      const created = data
-      setItems(prev => [{ id: created.property_id ?? created.id, address: created.address, ward: created.ward, ptype: created.ptype, usage: created.usage, landArea: Number(created.land_area), builtArea: Number(created.built_area), owner: created.owner_id ?? created.owner, status: 'Active', lastAssessment: created.created_at ?? created.createdAt }, ...prev])
+      mockService.properties.create(newProp)
+      setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
     } catch (err) {
       console.error('create property error:', err)
       const e: any = err

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import Header from '../../../components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { supabase } from '@/lib/supabaseClient'
+import { mockService } from '@/lib/mockService'
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([])
@@ -27,13 +27,10 @@ export default function PaymentsPage() {
   async function fetchAll() {
     try {
       setLoading(true)
-      const [{ data: pRows, error: pErr }, { data: aRows, error: aErr }] = await Promise.all([
-        supabase.from('payment').select('*'),
-        supabase.from('assessment').select('*')
-      ])
-      if (pErr || aErr) throw pErr || aErr
-      setPayments((pRows ?? []).map((r: any) => ({ id: r.payment_id ?? r.id, method: r.payment_method ?? r.method, paidAmount: Number(r.paid_amount ?? r.paidAmount), paidOn: new Date(r.paid_on ?? r.paidOn), txRef: r.transaction_ref ?? r.txRef, assessId: r.assess_id ?? r.assessId, status: r.payment_status ?? r.status, propertyAddress: r.property_address ?? r.propertyAddress ?? '' })))
-      setAssessments((aRows ?? []).map((r: any) => ({ id: r.assess_id ?? r.id, financialYear: r.financial_year, assessedValue: Number(r.assessed_value ?? r.assessedValue), totalDue: Number(r.total_due ?? r.totalDue), propertyAddress: r.property_address ?? r.propertyAddress ?? '', status: r.status })))
+      const pRows = mockService.payments.list()
+      const aRows = mockService.assessments.list()
+      setPayments((pRows ?? []).map((r: any) => ({ id: r.id, method: r.method ?? r.payment_method, paidAmount: Number(r.paidAmount ?? r.paid_amount), paidOn: new Date(r.paidOn ?? r.paid_on), txRef: r.txRef ?? r.transaction_ref, assessId: r.assessId ?? r.assess_id, status: r.status ?? 'COMPLETED', propertyAddress: '' })))
+      setAssessments((aRows ?? []).map((r: any) => ({ id: r.id, financialYear: r.financialYear ?? r.financial_year, assessedValue: Number(r.assessedValue ?? r.assessed_value), totalDue: Number(r.totalDue ?? r.total_due), propertyAddress: mockService.properties.list().find(p => p.id === r.propertyId)?.address || '', status: r.status })))
       setLoading(false)
     } catch (e) { 
       setPayments([])
@@ -45,12 +42,10 @@ export default function PaymentsPage() {
   async function handlePay(payment: any) {
     try {
       
-      const payload = { assess_id: payment.assessId, paid_amount: payment.paidAmount, payment_method: payment.method, transaction_ref: payment.txRef }
-      const { data: created, error } = await supabase.from('payment').insert([payload]).select().single()
-      if (error) throw error
-      setPayments(prev => [{ id: created.payment_id ?? created.id, method: created.payment_method ?? created.method, paidAmount: Number(created.paid_amount ?? created.paidAmount), paidOn: new Date(created.paid_on ?? created.paidOn), txRef: created.transaction_ref ?? created.txRef, assessId: created.assess_id ?? created.assessId, status: created.payment_status ?? created.status, propertyAddress: '' }, ...prev])
-      // update assessment locally if returned / refetch list
-      await fetchAll()
+  const payload = { id: 'pay' + Date.now(), assessId: String(payment.assessId), paidAmount: Number(payment.paidAmount), paidOn: new Date().toISOString(), method: payment.method, txRef: payment.txRef }
+  mockService.payments.create(payload)
+  // refresh lists
+  await fetchAll()
     } catch (e) { 
       console.error(e) 
     }
