@@ -1,19 +1,20 @@
 "use client"
 import React from 'react'
 import Link from 'next/link'
+import { Home, MapPin, FileText, CreditCard, Settings } from 'lucide-react'
 
 type NavItem = {
   name: string
   href: string
-  icon: any
+  icon: React.ComponentType<any>
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/prototype', icon: (props: any) => React.createElement(require('lucide-react').Home, props) },
-  { name: 'Properties', href: '/prototype/properties', icon: (props: any) => React.createElement(require('lucide-react').MapPin, props) },
-  { name: 'Assessments', href: '/prototype/assessments', icon: (props: any) => React.createElement(require('lucide-react').FileText, props) },
-  { name: 'Payments', href: '/prototype/payments', icon: (props: any) => React.createElement(require('lucide-react').CreditCard, props) },
-  { name: 'Admin', href: '/prototype/admin', icon: (props: any) => React.createElement(require('lucide-react').Settings, props) },
+  { name: 'Dashboard', href: '/prototype', icon: Home },
+  { name: 'Properties', href: '/prototype/properties', icon: MapPin },
+  { name: 'Assessments', href: '/prototype/assessments', icon: FileText },
+  { name: 'Payments', href: '/prototype/payments', icon: CreditCard },
+  { name: 'Admin', href: '/prototype/admin', icon: Settings },
 ]
 
 export default function SidebarNav({ className = '' }: { className?: string }) {
