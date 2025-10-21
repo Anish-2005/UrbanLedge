@@ -14,6 +14,7 @@ import SidebarNav from '@/components/SidebarNav'
 import { mockService } from '@/lib/mockService'
 
 export default function AssessmentsPage() {
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProperty, setSelectedProperty] = useState<any>(null)
@@ -272,7 +273,7 @@ export default function AssessmentsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <Header />
+      <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-12 gap-8">
@@ -283,8 +284,8 @@ export default function AssessmentsPage() {
             transition={{ delay: 0.1 }}
             className="col-span-12 md:col-span-3 lg:col-span-2"
           >
-            <nav className="sticky top-8">
-              <SidebarNav />
+            <nav className="sticky top-20">
+              <SidebarNav mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </nav>
           </motion.aside>
 

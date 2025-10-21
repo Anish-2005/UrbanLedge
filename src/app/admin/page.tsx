@@ -15,8 +15,10 @@ import {
   ShieldCheck, Users as UsersIcon, PieChart,
   Building2, Landmark, FileBarChart
 } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function AdminPage() {
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('tax-slabs')
   const [taxSlabs, setTaxSlabs] = useState([
     { id: 1, type: 'Residential', minArea: 0, maxArea: 150, rate: 10, status: 'Active' },
@@ -287,46 +289,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-4">
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-              >
-                UrbanLedge
-              </motion.div>
-              <div className="text-sm text-gray-500 hidden md:block">Property Tax Management</div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <motion.div 
-                className="relative"
-                whileFocus={{ scale: 1.02 }}
-              >
-                <input 
-                  className="border border-gray-200 rounded-xl py-2 pl-10 pr-4 w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
-                  placeholder="Search admin settings..." 
-                />
-                <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-              </motion.div>
-
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-shadow duration-200"
-              >
-                Sign in
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
+      <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-12 gap-8">
@@ -337,8 +300,8 @@ export default function AdminPage() {
             transition={{ delay: 0.1 }}
             className="col-span-12 md:col-span-3 lg:col-span-2"
           >
-            <nav className="sticky top-8">
-              <SidebarNav />
+            <nav className="sticky top-20">
+              <SidebarNav mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </nav>
           </motion.aside>
 
