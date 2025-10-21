@@ -3,16 +3,20 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Plus, Edit2, Trash2, Building, Users, Calendar, MapPinned, SquareStack
+  Plus, Edit2, Trash2, Building, Users, Calendar, MapPinned, SquareStack,
+  ChevronRight, TrendingUp, DollarSign, Target, FileText
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
 import { mockService } from '@/lib/mockService'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function PropertiesPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState<any | null>(null)
+  const { theme } = useTheme()
 
   useEffect(() => { fetchList() }, [])
 
@@ -23,7 +27,6 @@ export default function PropertiesPage() {
       const res = await fetch('/api/properties')
       let rows: any = null
       if (!res.ok) {
-        // try to read body for error details
         let bodyText = ''
         try {
           const contentType = res.headers.get('content-type') || ''
@@ -55,7 +58,6 @@ export default function PropertiesPage() {
       setLoading(false)
     } catch (err) {
       console.error('fetch properties error:', err)
-      // Fall back to the mockService when API is unavailable
       try {
         const rows = mockService.properties.list()
         const mapped = (rows ?? []).map((r: any) => ({
@@ -89,7 +91,6 @@ export default function PropertiesPage() {
     try {
       const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
       if (!res.ok) {
-        // fallback to mock delete
         mockService.properties.delete(String(id))
       } else {
         const body = await res.json()
@@ -100,7 +101,6 @@ export default function PropertiesPage() {
       setItems(prev => prev.filter(item => item.id !== id))
     } catch (err) {
       console.error('delete property error:', err)
-      // fallback
       mockService.properties.delete(String(id))
       setItems(prev => prev.filter(item => item.id !== id))
     }
@@ -112,7 +112,6 @@ export default function PropertiesPage() {
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
       const res = await fetch('/api/properties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) {
-        // fallback to mock create
         const newProp = {
           id: 'p' + Date.now(),
           ownerId: 'u2',
@@ -128,7 +127,6 @@ export default function PropertiesPage() {
         return
       }
       const created = await res.json()
-      // If backend returned mock header/body, use mockService
       const newItem = {
         id: created.property_id ?? created.id ?? 'p' + Date.now(),
         address: created.address,
@@ -144,7 +142,6 @@ export default function PropertiesPage() {
       setItems(prev => [newItem, ...prev])
     } catch (err) {
       console.error('create property error:', err)
-      // fallback
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
       const newProp = { id: 'p' + Date.now(), ownerId: 'u2', address: payload.address, ward: payload.ward, ptype: payload.ptype, landArea: payload.land_area, builtArea: payload.built_area, usage: payload.usage }
       mockService.properties.create(newProp)
@@ -155,9 +152,6 @@ export default function PropertiesPage() {
   function handleEdit(property: any) {
     setEditing(property)
   }
-
-  // Edit modal state
-  const [editing, setEditing] = useState<any | null>(null)
 
   async function saveEdit(changes: any) {
     try {
@@ -188,100 +182,163 @@ export default function PropertiesPage() {
   }
 
   const stats = [
-    { label: 'Total Properties', value: items.length.toString(), icon: Building, color: 'bg-blue-500' },
-    { label: 'Active Properties', value: items.filter(p => p.status === 'Active').length.toString(), icon: MapPinned, color: 'bg-green-500' },
-    { label: 'Total Wards', value: '4', icon: MapPinned, color: 'bg-purple-500' },
-    { label: 'Avg. Land Area', value: '775m²', icon: SquareStack, color: 'bg-orange-500' },
+    { 
+      label: 'Total Properties', 
+      value: items.length.toString(),
+      change: '+4.7%', 
+      icon: Building, 
+      gradient: 'from-blue-500 to-indigo-600',
+      description: 'Registered properties',
+      trend: 'up'
+    },
+    { 
+      label: 'Active Properties', 
+      value: items.filter(p => p.status === 'Active').length.toString(),
+      change: '+2.1%', 
+      icon: MapPinned, 
+      gradient: 'from-emerald-500 to-teal-600',
+      description: 'Currently active',
+      trend: 'up'
+    },
+    { 
+      label: 'Total Wards', 
+      value: '4',
+      change: '+0%', 
+      icon: Target, 
+      gradient: 'from-purple-500 to-pink-600',
+      description: 'Coverage areas',
+      trend: 'stable'
+    },
+    { 
+      label: 'Avg. Land Area', 
+      value: '775m²',
+      change: '+1.2%', 
+      icon: SquareStack, 
+      gradient: 'from-amber-500 to-orange-600',
+      description: 'Average property size',
+      trend: 'up'
+    },
   ]
 
   const PropertyCard = ({ property, onEdit, onDelete }: any) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300"
+      whileHover={{ y: -5, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+      className={`
+        relative rounded-3xl p-6 overflow-hidden
+        ${theme === 'light' 
+          ? 'bg-white shadow-lg shadow-gray-200/50 ring-1 ring-inset ring-gray-100' 
+          : 'bg-gray-800 shadow-lg shadow-black/20'
+        }
+        border border-transparent
+        hover:shadow-xl hover:shadow-blue-500/10
+        transition-all duration-300
+      `}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`w-3 h-3 rounded-full ${
-              property.status === 'Active' ? 'bg-green-500' :
-              property.status === 'Pending' ? 'bg-yellow-500' :
-              'bg-gray-400'
-            }`} />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              {property.ptype} • {property.usage}
-            </span>
-          </div>
+      {/* Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50" />
+      
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-3 h-3 rounded-full ${
+                property.status === 'Active' ? 'bg-emerald-500' :
+                property.status === 'Pending' ? 'bg-amber-500' :
+                'bg-gray-400'
+              }`} />
+              <span className={`
+                text-xs font-medium uppercase tracking-wide
+                ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+              `}>
+                {property.ptype} • {property.usage}
+              </span>
+            </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {property.address}
-          </h3>
+            <h3 className={`
+              text-lg font-semibold mb-3
+              ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+            `}>
+              {property.address}
+            </h3>
 
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-            <div className="flex items-center gap-2">
-              <Users size={14} className="text-gray-400" />
-              <span>{property.owner}</span>
+            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+              <div className="flex items-center gap-2">
+                <Users size={14} className={theme === 'light' ? 'text-gray-400' : 'text-gray-500'} />
+                <span className={theme === 'light' ? 'text-gray-600' : 'text-gray-300'}>{property.owner}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPinned size={14} className={theme === 'light' ? 'text-gray-400' : 'text-gray-500'} />
+                <span className={theme === 'light' ? 'text-gray-600' : 'text-gray-300'}>Ward {property.ward}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPinned size={14} className="text-gray-400" />
-              <span>Ward {property.ward}</span>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-6 text-sm">
-            <div>
-              <div className="text-gray-500">Land Area</div>
-              <div className="font-semibold text-gray-900">{property.landArea}m²</div>
-            </div>
-            <div>
-              <div className="text-gray-500">Built Area</div>
-              <div className="font-semibold text-gray-900">{property.builtArea}m²</div>
-            </div>
-            <div>
-              <div className="text-gray-500">Last Assessed</div>
-              <div className="font-semibold text-gray-900">
-                {new Date(property.lastAssessment).toLocaleDateString()}
+            <div className="flex items-center gap-6 text-sm">
+              <div>
+                <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Land Area</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.landArea}m²</div>
+              </div>
+              <div>
+                <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Built Area</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.builtArea}m²</div>
+              </div>
+              <div>
+                <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Last Assessed</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>
+                  {new Date(property.lastAssessment).toLocaleDateString()}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-          property.status === 'Active' ? 'bg-green-100 text-green-700' :
-          property.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-          'bg-gray-100 text-gray-700'
-        }`}>
-          {property.status}
-        </div>
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200/50">
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            property.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+            property.status === 'Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+            'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
+          }`}>
+            {property.status}
+          </div>
 
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onEdit?.(property)}
-            className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors duration-200"
-          >
-            <Edit2 size={16} />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onDelete?.(property.id)}
-            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200"
-          >
-            <Trash2 size={16} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onEdit?.(property)}
+              className={`
+                p-2 rounded-xl font-medium transition-all duration-200
+                bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm
+              `}
+            >
+              <Edit2 size={16} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onDelete?.(property.id)}
+              className={`
+                p-2 rounded-xl font-medium transition-all duration-200
+                bg-red-500 hover:bg-red-600 text-white shadow-sm
+              `}
+            >
+              <Trash2 size={16} />
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header */}
+    <div className={`
+      min-h-screen transition-colors duration-300
+      ${theme === 'light'
+        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
+        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+      }
+    `}>
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -291,7 +348,7 @@ export default function PropertiesPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="col-span-12 md:col-span-3 lg:col-span-2"
+            className="col-span-12 lg:col-span-3 xl:col-span-2"
           >
             <nav className="sticky top-8">
               <SidebarNav />
@@ -299,7 +356,7 @@ export default function PropertiesPage() {
           </motion.aside>
 
           {/* Main Content */}
-          <main className="col-span-12 md:col-span-9 lg:col-span-10">
+          <main className="col-span-12 lg:col-span-9 xl:col-span-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -307,40 +364,109 @@ export default function PropertiesPage() {
               className="space-y-8"
             >
               {/* Header Section */}
-              <div className="flex items-center justify-between">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              >
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
-                  <p className="text-gray-600 mt-2">Manage all registered properties and their details</p>
+                  <h1 className={`
+                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    ${theme === 'light'
+                      ? 'from-slate-900 to-slate-700'
+                      : 'from-white to-gray-300'
+                    }
+                  `}>
+                    Property Management
+                  </h1>
+                  <p className={`
+                    mt-2 text-lg
+                    ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+                  `}>
+                    Manage all registered properties and their details
+                  </p>
                 </div>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleAdd}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                  className={`
+                    inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold
+                    transition-all duration-300 shadow-md
+                    bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600
+                    text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
+                  `}
                 >
                   <Plus size={20} />
                   Add Property
                 </motion.button>
-              </div>
+              </motion.div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
                   <motion.div
                     key={stat.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                    className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all duration-300 border border-gray-100"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                    whileHover={{ y: -5, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+                    className={`
+                      relative rounded-3xl p-6 overflow-hidden
+                      ${theme === 'light' 
+                        ? 'bg-white shadow-lg shadow-gray-200/50 ring-1 ring-inset ring-gray-100' 
+                        : 'bg-gray-800 shadow-lg shadow-black/20'
+                      }
+                      border border-transparent
+                      hover:shadow-xl hover:shadow-blue-500/10
+                      transition-all duration-300
+                    `}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    {/* Background Gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10`} />
+                    
+                    <div className="relative">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`
+                            text-sm font-medium
+                            ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+                          `}>
+                            {stat.label}
+                          </p>
+                          <p className={`
+                            text-2xl font-bold mt-1
+                            ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                          `}>
+                            {stat.value}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <TrendingUp 
+                              size={16} 
+                              className={stat.trend === 'up' ? 'text-emerald-500' : stat.trend === 'down' ? 'text-amber-500' : 'text-gray-500'} 
+                            />
+                            <span className={`
+                              text-sm font-medium
+                              ${stat.trend === 'up' ? 'text-emerald-600' : stat.trend === 'down' ? 'text-amber-600' : 'text-gray-600'}
+                            `}>
+                              {stat.change}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`
+                          p-3 rounded-2xl bg-gradient-to-r ${stat.gradient} 
+                          text-white shadow-lg
+                        `}>
+                          <stat.icon size={24} />
+                        </div>
                       </div>
-                      <div className={`${stat.color} p-3 rounded-xl text-white shadow-sm`}>
-                        <stat.icon size={24} />
-                      </div>
+                      <p className={`
+                        text-xs mt-3
+                        ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}
+                      `}>
+                        {stat.description}
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -350,22 +476,29 @@ export default function PropertiesPage() {
               {loading ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 animate-pulse">
+                    <div key={i} className={`
+                      rounded-3xl p-6 border border-transparent
+                      ${theme === 'light'
+                        ? 'bg-white shadow-lg ring-1 ring-inset ring-gray-100'
+                        : 'bg-gray-800 shadow-lg shadow-black/20'
+                      }
+                      animate-pulse
+                    `}>
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-3 h-3 bg-gray-200 rounded-full" />
-                        <div className="h-4 bg-gray-200 rounded w-24" />
+                        <div className={`w-3 h-3 rounded-full ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
+                        <div className={`h-4 rounded w-24 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
                       </div>
-                      <div className="h-6 bg-gray-200 rounded mb-3" />
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-6" />
+                      <div className={`h-6 rounded mb-3 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
+                      <div className={`h-4 rounded w-3/4 mb-6 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
                       <div className="flex gap-6 mb-4">
-                        <div className="h-4 bg-gray-200 rounded w-20" />
-                        <div className="h-4 bg-gray-200 rounded w-20" />
+                        <div className={`h-4 rounded w-20 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
+                        <div className={`h-4 rounded w-20 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
                       </div>
-                      <div className="flex justify-between pt-4 border-t border-gray-100">
-                        <div className="h-6 bg-gray-200 rounded w-16" />
+                      <div className="flex justify-between pt-4 border-t border-gray-200/50">
+                        <div className={`h-6 rounded w-16 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
                         <div className="flex gap-2">
-                          <div className="w-8 h-8 bg-gray-200 rounded-lg" />
-                          <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+                          <div className={`w-8 h-8 rounded-xl ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
+                          <div className={`w-8 h-8 rounded-xl ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`} />
                         </div>
                       </div>
                     </div>
@@ -396,46 +529,135 @@ export default function PropertiesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center py-12"
                 >
-                  <Building size={64} className="mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
-                  <p className="text-gray-600 mb-6">Get started by adding your first property</p>
+                  <Building size={64} className={`mx-auto mb-4 ${theme === 'light' ? 'text-gray-300' : 'text-gray-600'}`} />
+                  <h3 className={`
+                    text-lg font-semibold mb-2
+                    ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                  `}>
+                    No properties found
+                  </h3>
+                  <p className={`
+                    mb-6
+                    ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+                  `}>
+                    Get started by adding your first property
+                  </p>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleAdd}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                    className={`
+                      inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 
+                      text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200
+                    `}
                   >
                     <Plus size={20} />
                     Add First Property
                   </motion.button>
                 </motion.div>
               )}
+
               {/* Edit Modal */}
               {editing && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-xl p-6 w-full max-w-md">
-                    <h3 className="text-lg font-semibold mb-4">Edit property</h3>
+                  <div className={`
+                    rounded-3xl p-6 w-full max-w-md
+                    ${theme === 'light' 
+                      ? 'bg-white shadow-xl' 
+                      : 'bg-gray-800 shadow-xl shadow-black/30'
+                    }
+                  `}>
+                    <h3 className={`
+                      text-lg font-semibold mb-4
+                      ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                    `}>
+                      Edit Property
+                    </h3>
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm text-gray-600">Address</label>
-                        <input className="w-full border rounded p-2" value={editing.address} onChange={e => setEditing({ ...editing, address: e.target.value })} />
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Address
+                        </label>
+                        <input 
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.address} 
+                          onChange={e => setEditing({ ...editing, address: e.target.value })} 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600">Ward</label>
-                        <input className="w-full border rounded p-2" value={editing.ward} onChange={e => setEditing({ ...editing, ward: e.target.value })} />
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Ward
+                        </label>
+                        <input 
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.ward} 
+                          onChange={e => setEditing({ ...editing, ward: e.target.value })} 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600">Type</label>
-                        <input className="w-full border rounded p-2" value={editing.ptype} onChange={e => setEditing({ ...editing, ptype: e.target.value })} />
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Type
+                        </label>
+                        <input 
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.ptype} 
+                          onChange={e => setEditing({ ...editing, ptype: e.target.value })} 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600">Usage</label>
-                        <input className="w-full border rounded p-2" value={editing.usage} onChange={e => setEditing({ ...editing, usage: e.target.value })} />
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Usage
+                        </label>
+                        <input 
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.usage} 
+                          onChange={e => setEditing({ ...editing, usage: e.target.value })} 
+                        />
                       </div>
                     </div>
-                    <div className="flex items-center justify-end gap-2 mt-4">
-                      <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => setEditing(null)}>Cancel</button>
-                      <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => saveEdit({})}>Save</button>
+                    <div className="flex items-center justify-end gap-2 mt-6">
+                      <button 
+                        className={`
+                          px-4 py-2 rounded-xl font-medium transition-colors
+                          ${theme === 'light'
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }
+                        `}
+                        onClick={() => setEditing(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                        onClick={() => saveEdit({})}
+                      >
+                        Save Changes
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -215,13 +215,7 @@ export default function Header() {
                   >
                     Welcome
                   </p>
-                  <p
-                    className={`text-xs leading-none ${
-                      theme === "light" ? "text-gray-600" : "text-gray-400"
-                    }`}
-                  >
-                    Sign in to continue
-                  </p>
+                 
                 </div>
                 <SignInButton />
               </motion.div>
