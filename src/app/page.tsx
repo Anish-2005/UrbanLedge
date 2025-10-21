@@ -162,19 +162,20 @@ export default function PrototypePage() {
                     `}
                   />
 
-                  <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`
-                    flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold
-                    transition-all duration-300 shadow-md
-                    bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600
-                    text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
-                  `}
-                >
-                  <Plus size={20} />
-                  New Assessment
-                </motion.button>
+                  <motion.a
+                    href="/assessments"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`
+                      inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold
+                      transition-all duration-300 shadow-md
+                      bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600
+                      text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
+                    `}
+                  >
+                    <Plus size={20} />
+                    New Assessment
+                  </motion.a>
                 </div>
               </motion.div>
 
