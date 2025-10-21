@@ -10,9 +10,11 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function PrototypePage() {
+  const router = useRouter()
   const [properties, setProperties] = useState<any[]>([])
   const [assessments, setAssessments] = useState<any[]>([])
   const [payments, setPayments] = useState<any[]>([])
@@ -280,50 +282,51 @@ export default function PrototypePage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        { icon: FileText, label: 'Create Assessment', description: 'Generate new property assessment', gradient: 'from-blue-500 to-cyan-600' },
-                        { icon: DollarSign, label: 'Process Payment', description: 'Accept tax payments', gradient: 'from-emerald-500 to-teal-600' },
-                        { icon: Building, label: 'Add Property', description: 'Register new property', gradient: 'from-purple-500 to-pink-600' },
-                        { icon: Users, label: 'Manage Taxpayers', description: 'Update taxpayer information', gradient: 'from-amber-500 to-orange-600' }
-                      ].map((action, index) => (
-                        <motion.button
-                          key={action.label}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                          className={`
-                            p-4 rounded-2xl text-left transition-all duration-300 group
-                            ${theme === 'light'
-                              ? 'bg-white hover:bg-gray-50 border border-gray-100 shadow-sm'
-                              : 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50'
-                            }
-                          `}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`
-                              w-12 h-12 rounded-xl flex items-center justify-center
-                              bg-gradient-to-r ${action.gradient} text-white
-                              group-hover:shadow-lg transition-shadow duration-300
-                            `}>
-                              <action.icon size={24} />
-                            </div>
-                            <div>
+                        {[
+                          { icon: FileText, label: 'Create Assessment', description: 'Generate new property assessment', gradient: 'from-blue-500 to-cyan-600', href: '/assessments' },
+                          { icon: DollarSign, label: 'Process Payment', description: 'Accept tax payments', gradient: 'from-emerald-500 to-teal-600', href: '/payments' },
+                          { icon: Building, label: 'Add Property', description: 'Register new property', gradient: 'from-purple-500 to-pink-600', href: '/properties' },
+                          { icon: Users, label: 'Manage Taxpayers', description: 'Update taxpayer information', gradient: 'from-amber-500 to-orange-600', href: '/admin' }
+                        ].map((action, index) => (
+                          <motion.button
+                            key={action.label}
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            onClick={() => router.push(action.href)}
+                            className={`
+                              p-4 rounded-2xl text-left transition-all duration-300 group
+                              ${theme === 'light'
+                                ? 'bg-white hover:bg-gray-50 border border-gray-100 shadow-sm'
+                                : 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center gap-3">
                               <div className={`
-                                font-semibold
-                                ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                                w-12 h-12 rounded-xl flex items-center justify-center
+                                bg-gradient-to-r ${action.gradient} text-white
+                                group-hover:shadow-lg transition-shadow duration-300
                               `}>
-                                {action.label}
+                                <action.icon size={24} />
                               </div>
-                              <div className={`
-                                text-sm mt-1
-                                ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
-                              `}>
-                                {action.description}
+                              <div>
+                                <div className={`
+                                  font-semibold
+                                  ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                                `}>
+                                  {action.label}
+                                </div>
+                                <div className={`
+                                  text-sm mt-1
+                                  ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+                                `}>
+                                  {action.description}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </motion.button>
-                      ))}
+                          </motion.button>
+                        ))}
                     </div>
                   </motion.div>
 
