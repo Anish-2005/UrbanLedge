@@ -2,9 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const { Pool } = require('pg')
 
-const sqlPath = path.resolve(process.cwd(), 'sql', 'schema_postgres.sql')
+const sqlPath = path.resolve(process.cwd(), 'sql', 'sample_data.sql')
 if (!fs.existsSync(sqlPath)) {
-  console.error('schema_postgres.sql not found at', sqlPath)
+  console.error('sample_data.sql not found at', sqlPath)
   process.exit(1)
 }
 
@@ -15,21 +15,24 @@ if (!conn) {
   process.exit(1)
 }
 
-;(async function run(){
+(async function run(){
   const pool = new Pool({ connectionString: conn, ssl: { rejectUnauthorized: false } })
   const client = await pool.connect()
   try {
-    console.log('Applying schema...')
-    await client.query('BEGIN')
+    console.log('Applying sample data...')
+    // split on semicolon newline as in apply_schema.js
     const statements = sql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean)
     for (const st of statements) {
-      await client.query(st)
+      try {
+        await client.query(st)
+      } catch (err) {
+        console.error('Statement failed:', st.slice(0,120))
+        console.error(err.message)
+      }
     }
-    await client.query('COMMIT')
-    console.log('Schema applied successfully')
+    console.log('Sample data applied (best-effort)')
   } catch (err) {
-    console.error('Schema apply failed:', err)
-    try { await client.query('ROLLBACK') } catch (e) {}
+    console.error('Sample data apply failed:', err)
     process.exit(1)
   } finally {
     client.release(); await pool.end()

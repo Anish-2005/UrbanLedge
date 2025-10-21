@@ -20,16 +20,34 @@ export default function PropertiesPage() {
     try {
       setLoading(true)
       setError(null)
-      const rows = mockService.properties.list()
+      const res = await fetch('/api/properties')
+      let rows: any = null
+      if (!res.ok) {
+        // try to read body for error details
+        let bodyText = ''
+        try {
+          const contentType = res.headers.get('content-type') || ''
+          if (contentType.includes('application/json')) {
+            const j = await res.json()
+            bodyText = JSON.stringify(j)
+          } else {
+            bodyText = await res.text()
+          }
+        } catch (e) {
+          bodyText = String(e)
+        }
+        throw new Error(`Failed to load properties (status ${res.status}): ${bodyText}`)
+      }
+      rows = await res.json()
       const mapped = (rows ?? []).map((r: any) => ({
-        id: r.id,
+        id: r.property_id ?? r.id,
         address: r.address,
         ward: r.ward,
         ptype: r.ptype,
         usage: r.usage,
-        landArea: Number(r.landArea ?? 0),
-        builtArea: Number(r.builtArea ?? 0),
-        owner: r.ownerId ?? null,
+        landArea: Number(r.land_area ?? r.landArea ?? 0),
+        builtArea: Number(r.built_area ?? r.builtArea ?? 0),
+        owner: r.owner_id ?? r.ownerId ?? null,
         status: 'Active',
         lastAssessment: new Date().toISOString()
       }))
@@ -37,57 +55,136 @@ export default function PropertiesPage() {
       setLoading(false)
     } catch (err) {
       console.error('fetch properties error:', err)
-      const e: any = err
-      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
-      setError(message)
-      setItems([])
-      setLoading(false)
+      // Fall back to the mockService when API is unavailable
+      try {
+        const rows = mockService.properties.list()
+        const mapped = (rows ?? []).map((r: any) => ({
+          id: r.id,
+          address: r.address,
+          ward: r.ward,
+          ptype: r.ptype,
+          usage: r.usage,
+          landArea: Number(r.landArea ?? 0),
+          builtArea: Number(r.builtArea ?? 0),
+          owner: r.ownerId ?? null,
+          status: 'Active',
+          lastAssessment: new Date().toISOString()
+        }))
+        setItems(mapped)
+        setLoading(false)
+        setError(null)
+        return
+      } catch (e) {
+        const ee: any = err
+        const message = ee?.message ?? ee?.error ?? (typeof ee === 'object' ? JSON.stringify(ee) : String(ee)) ?? 'Unknown error'
+        setError(message)
+        setItems([])
+        setLoading(false)
+      }
     }
   }
 
   async function handleDelete(id: number | string) {
     if (!confirm('Are you sure you want to delete this property?')) return
     try {
-  mockService.properties.delete(String(id))
-  setItems(prev => prev.filter(item => item.id !== id))
+      const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
+      if (!res.ok) {
+        // fallback to mock delete
+        mockService.properties.delete(String(id))
+      } else {
+        const body = await res.json()
+        if (body?._mock) {
+          mockService.properties.delete(String(id))
+        }
+      }
+      setItems(prev => prev.filter(item => item.id !== id))
     } catch (err) {
-      // Normalize error message for different shapes (Error, Supabase error, plain object)
       console.error('delete property error:', err)
-      const e: any = err
-      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
-      setError(message)
+      // fallback
+      mockService.properties.delete(String(id))
+      setItems(prev => prev.filter(item => item.id !== id))
     }
   }
 
   async function handleAdd() {
     try {
       setError(null)
-      // Build a clean payload using FK ids (ward_id, ptype_id). Use owner_id=1 for prototype.
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
-
-      // Create property locally via mockService
-      const newProp = {
-        id: 'p' + Date.now(),
-        ownerId: 'u2',
-        address: payload.address,
-        ward: payload.ward,
-        ptype: payload.ptype,
-        landArea: payload.land_area,
-        builtArea: payload.built_area,
-        usage: payload.usage
+      const res = await fetch('/api/properties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) {
+        // fallback to mock create
+        const newProp = {
+          id: 'p' + Date.now(),
+          ownerId: 'u2',
+          address: payload.address,
+          ward: payload.ward,
+          ptype: payload.ptype,
+          landArea: payload.land_area,
+          builtArea: payload.built_area,
+          usage: payload.usage
+        }
+        mockService.properties.create(newProp)
+        setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
+        return
       }
-      mockService.properties.create(newProp)
-      setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
+      const created = await res.json()
+      // If backend returned mock header/body, use mockService
+      const newItem = {
+        id: created.property_id ?? created.id ?? 'p' + Date.now(),
+        address: created.address,
+        ward: created.ward,
+        ptype: created.ptype,
+        usage: created.usage,
+        landArea: Number(created.land_area ?? created.landArea ?? 0),
+        builtArea: Number(created.built_area ?? created.builtArea ?? 0),
+        owner: created.owner_id ?? created.ownerId ?? null,
+        status: 'Active',
+        lastAssessment: new Date().toISOString()
+      }
+      setItems(prev => [newItem, ...prev])
     } catch (err) {
       console.error('create property error:', err)
-      const e: any = err
-      const message = e?.message ?? e?.error ?? (typeof e === 'object' ? JSON.stringify(e) : String(e)) ?? 'Unknown error'
-      setError(message)
+      // fallback
+      const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
+      const newProp = { id: 'p' + Date.now(), ownerId: 'u2', address: payload.address, ward: payload.ward, ptype: payload.ptype, landArea: payload.land_area, builtArea: payload.built_area, usage: payload.usage }
+      mockService.properties.create(newProp)
+      setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
     }
   }
 
   function handleEdit(property: any) {
-    alert(`Edit property: ${property.address}`)
+    setEditing(property)
+  }
+
+  // Edit modal state
+  const [editing, setEditing] = useState<any | null>(null)
+
+  async function saveEdit(changes: any) {
+    try {
+      const payload = { ...editing, ...changes }
+      const res = await fetch('/api/properties', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Failed to update')
+      }
+      const updated = await res.json()
+      setItems(prev => prev.map(it => (it.id === (updated.property_id ?? updated.id) ? {
+        id: updated.property_id ?? updated.id,
+        address: updated.address,
+        ward: updated.ward,
+        ptype: updated.ptype,
+        usage: updated.usage,
+        landArea: Number(updated.land_area ?? updated.landArea ?? it.landArea),
+        builtArea: Number(updated.built_area ?? updated.builtArea ?? it.builtArea),
+        owner: updated.owner_id ?? updated.ownerId ?? it.owner,
+        status: it.status,
+        lastAssessment: it.lastAssessment
+      } : it)))
+      setEditing(null)
+    } catch (err) {
+      console.error('save edit error', err)
+      setError(String(err))
+    }
   }
 
   const stats = [
@@ -312,6 +409,36 @@ export default function PropertiesPage() {
                     Add First Property
                   </motion.button>
                 </motion.div>
+              )}
+              {/* Edit Modal */}
+              {editing && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-xl p-6 w-full max-w-md">
+                    <h3 className="text-lg font-semibold mb-4">Edit property</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm text-gray-600">Address</label>
+                        <input className="w-full border rounded p-2" value={editing.address} onChange={e => setEditing({ ...editing, address: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600">Ward</label>
+                        <input className="w-full border rounded p-2" value={editing.ward} onChange={e => setEditing({ ...editing, ward: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600">Type</label>
+                        <input className="w-full border rounded p-2" value={editing.ptype} onChange={e => setEditing({ ...editing, ptype: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600">Usage</label>
+                        <input className="w-full border rounded p-2" value={editing.usage} onChange={e => setEditing({ ...editing, usage: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 mt-4">
+                      <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => setEditing(null)}>Cancel</button>
+                      <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => saveEdit({})}>Save</button>
+                    </div>
+                  </div>
+                </div>
               )}
             </motion.div>
           </main>
