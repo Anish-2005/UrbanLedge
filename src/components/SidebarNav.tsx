@@ -10,11 +10,11 @@ type NavItem = {
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/prototype', icon: Home },
-  { name: 'Properties', href: '/prototype/properties', icon: MapPin },
-  { name: 'Assessments', href: '/prototype/assessments', icon: FileText },
-  { name: 'Payments', href: '/prototype/payments', icon: CreditCard },
-  { name: 'Admin', href: '/prototype/admin', icon: Settings },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Properties', href: '/properties', icon: MapPin },
+  { name: 'Assessments', href: '/assessments', icon: FileText },
+  { name: 'Payments', href: '/payments', icon: CreditCard },
+  { name: 'Admin', href: '/admin', icon: Settings },
 ]
 
 export default function SidebarNav({ className = '' }: { className?: string }) {

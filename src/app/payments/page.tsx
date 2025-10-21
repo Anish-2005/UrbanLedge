@@ -11,7 +11,7 @@ import {
   CreditCardIcon, Banknote, QrCode, Receipt,
   TrendingUp, Wallet, Shield, Zap
 } from 'lucide-react'
-import Header from '../../../components/Header'
+import Header from '../../components/Header'
 import SidebarNav from '@/components/SidebarNav'
 import { mockService } from '@/lib/mockService'
 
