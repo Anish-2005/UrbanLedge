@@ -151,18 +151,7 @@ export default function PrototypePage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <label htmlFor="site-search" className="sr-only">Search</label>
-                  <input
-                    id="site-search"
-                    placeholder="Search properties, payments, assessments..."
-                    className={`
-                      hidden sm:inline-flex w-[360px] max-w-full px-4 py-2 rounded-2xl text-sm
-                      bg-white/90 shadow-sm border border-gray-200
-                      placeholder:text-gray-400
-                      focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                      transition-colors duration-150
-                    `}
-                  />
+                  
 
                   <motion.a
                     href="/assessments"
