@@ -1,50 +1,215 @@
 "use client";
 import { motion } from "framer-motion";
-import { Search, User, Home } from "lucide-react";
-import SignInButton from './SignInButton'
+import { Search, User, Bell, Building2 } from "lucide-react";
+import SignInButton from './SignInButton';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Header() {
+  const { theme } = useTheme();
+
   return (
     <motion.header
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className={`
+        sticky top-0 z-50 backdrop-blur-xl border-b transition-all duration-300
+        bg-white/80 dark:bg-gray-900/80
+        border-gray-200/80 dark:border-gray-700/80
+        shadow-sm dark:shadow-gray-900/50
+      `}
     >
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
-          {/* Left: Brand */}
-          <div className="flex items-center gap-2">
-            <Home size={22} className="text-indigo-600" />
-            <span className="text-xl font-semibold text-gray-800 tracking-tight">
-              UrbanLedge
-            </span>
-            <span className="hidden md:block text-sm text-gray-500 ml-2">
-              | Property Tax Management
-            </span>
-          </div>
+          {/* Left: Enhanced Brand */}
+          <motion.div 
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            <div className={`
+              relative p-2 rounded-2xl bg-gradient-to-br shadow-lg
+              from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700
+              group hover:from-blue-600 hover:to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800
+              transition-all duration-300
+            `}>
+              <Building2 size={20} className="text-white" />
+              
+              {/* Shine effect */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </div>
+            
+            <div className="flex flex-col">
+              <span className={`
+                text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                from-gray-900 to-gray-700 dark:from-white dark:to-gray-200
+                tracking-tight
+              `}>
+                UrbanLedge
+              </span>
+              <span className={`
+                text-xs font-medium
+                text-gray-500 dark:text-gray-400
+                hidden md:block
+              `}>
+                Property Tax Management
+              </span>
+            </div>
+          </motion.div>
 
-          {/* Center: Search */}
-          <div className="hidden md:flex items-center relative w-72">
+          {/* Center: Enhanced Search */}
+          <motion.div 
+            className="hidden md:flex items-center relative flex-1 max-w-2xl mx-8"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="w-full relative">
+              <Search
+                size={18}
+                className={`
+                  absolute left-4 top-1/2 transform -translate-y-1/2
+                  text-gray-400 dark:text-gray-500
+                  transition-colors duration-200
+                `}
+              />
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                type="text"
+                placeholder="Search properties, assessments, payments..."
+                className={`
+                  w-full border-0 rounded-2xl py-3 pl-12 pr-4 text-sm
+                  bg-gray-100/80 dark:bg-gray-800/80
+                  backdrop-blur-sm
+                  text-gray-900 dark:text-white 
+                  placeholder-gray-500 dark:placeholder-gray-400
+                  focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50
+                  focus:bg-white dark:focus:bg-gray-800
+                  outline-none transition-all duration-300
+                  shadow-inner
+                  hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+                `}
+              />
+              
+              {/* Keyboard shortcut hint */}
+              <div className={`
+                absolute right-3 top-1/2 transform -translate-y-1/2
+                px-2 py-1 rounded-lg text-xs font-medium
+                bg-gray-200/50 dark:bg-gray-700/50
+                text-gray-500 dark:text-gray-400
+                border border-gray-300/50 dark:border-gray-600/50
+                hidden lg:block
+              `}>
+                ⌘K
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right: Enhanced Action Area */}
+          <motion.div 
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {/* Notifications */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`
+                relative p-2.5 rounded-2xl transition-all duration-300
+                bg-gray-100/80 dark:bg-gray-800/80
+                hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+                text-gray-600 dark:text-gray-400
+                border border-transparent hover:border-gray-300/50 dark:hover:border-gray-600/50
+              `}
+              aria-label="Notifications"
+            >
+              <Bell size={20} />
+              
+              {/* Notification indicator */}
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`
+                  absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs
+                  bg-red-500 text-white flex items-center justify-center
+                  border-2 border-white dark:border-gray-900
+                  font-semibold
+                `}
+              >
+                3
+              </motion.span>
+            </motion.button>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
+            {/* User Profile / Sign In */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className={`
+                flex items-center gap-2 p-1.5 rounded-2xl
+                bg-gray-100/80 dark:bg-gray-800/80
+                hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+                transition-all duration-300
+                border border-transparent hover:border-gray-300/50 dark:hover:border-gray-600/50
+              `}
+            >
+              <div className={`
+                w-8 h-8 rounded-xl bg-gradient-to-br
+                from-blue-500 to-purple-600 flex items-center justify-center
+                shadow-md
+              `}>
+                <User size={16} className="text-white" />
+              </div>
+              
+              <div className="hidden sm:block mr-2">
+                <p className="text-sm font-medium text-gray-900 dark:text-white leading-none">
+                  Welcome
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-none">
+                  Sign in to continue
+                </p>
+              </div>
+              
+              <SignInButton />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Mobile Search */}
+        <motion.div 
+          className="md:hidden pb-4"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="relative">
             <Search
               size={18}
-              className="absolute left-3 top-2.5 text-gray-400"
+              className={`
+                absolute left-4 top-1/2 transform -translate-y-1/2
+                text-gray-400 dark:text-gray-500
+              `}
             />
             <input
               type="text"
               placeholder="Search properties, receipts..."
-              className="w-full border border-gray-300 rounded-lg py-2 pl-9 pr-3 text-sm text-gray-700 placeholder-gray-400
-                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200"
+              className={`
+                w-full border-0 rounded-2xl py-3 pl-12 pr-4 text-sm
+                bg-gray-100/80 dark:bg-gray-800/80
+                text-gray-900 dark:text-white 
+                placeholder-gray-500 dark:placeholder-gray-400
+                focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50
+                focus:bg-white dark:focus:bg-gray-800
+                outline-none transition-all duration-300
+              `}
             />
           </div>
-
-          {/* Right: Action Button */}
-          <div className="flex items-center gap-3">
-            <SignInButton />
-          </div>
-
-        </div>
+        </motion.div>
       </div>
     </motion.header>
   );
