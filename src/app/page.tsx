@@ -95,9 +95,9 @@ export default function PrototypePage() {
   return (
     <div className={`
       min-h-screen transition-colors duration-300
-      ${theme === 'light' 
-        ? 'bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30' 
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20'
+      ${theme === 'light'
+        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
+        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
       }
     `}>
       <Header />
@@ -135,7 +135,7 @@ export default function PrototypePage() {
                   <h1 className={`
                     text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
                     ${theme === 'light'
-                      ? 'from-gray-900 to-gray-700'
+                      ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
                     }
                   `}>
@@ -148,19 +148,34 @@ export default function PrototypePage() {
                     Welcome back! Here's what's happening today.
                   </p>
                 </div>
-                <motion.button
+                <div className="flex items-center gap-3">
+                  <label htmlFor="site-search" className="sr-only">Search</label>
+                  <input
+                    id="site-search"
+                    placeholder="Search properties, payments, assessments..."
+                    className={`
+                      hidden sm:inline-flex w-[360px] max-w-full px-4 py-2 rounded-2xl text-sm
+                      bg-white/90 shadow-sm border border-gray-200
+                      placeholder:text-gray-400
+                      focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                      transition-colors duration-150
+                    `}
+                  />
+
+                  <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`
-                    flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold
-                    transition-all duration-300 shadow-lg
-                    bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700
-                    text-white
+                    flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold
+                    transition-all duration-300 shadow-md
+                    bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600
+                    text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
                   `}
                 >
                   <Plus size={20} />
                   New Assessment
                 </motion.button>
+                </div>
               </motion.div>
 
               {/* Stats Grid */}
@@ -175,7 +190,7 @@ export default function PrototypePage() {
                     className={`
                       relative rounded-3xl p-6 overflow-hidden
                       ${theme === 'light' 
-                        ? 'bg-white shadow-lg shadow-gray-200/50' 
+                        ? 'bg-white shadow-lg shadow-gray-200/50 ring-1 ring-inset ring-gray-100' 
                         : 'bg-gray-800 shadow-lg shadow-black/20'
                       }
                       border border-transparent
@@ -184,7 +199,7 @@ export default function PrototypePage() {
                     `}
                   >
                     {/* Background Gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10`} />
                     
                     <div className="relative">
                       <div className="flex items-center justify-between">
@@ -242,8 +257,8 @@ export default function PrototypePage() {
                     transition={{ delay: 0.5 }}
                     className={`
                       rounded-3xl p-6
-                      ${theme === 'light' 
-                        ? 'bg-white shadow-lg shadow-gray-200/50' 
+                      ${theme === 'light'
+                        ? 'bg-white shadow-md ring-1 ring-inset ring-gray-100'
                         : 'bg-gray-800 shadow-lg shadow-black/20'
                       }
                     `}
@@ -278,7 +293,7 @@ export default function PrototypePage() {
                           className={`
                             p-4 rounded-2xl text-left transition-all duration-300 group
                             ${theme === 'light'
-                              ? 'bg-gray-50 hover:bg-gray-100 border border-gray-200/50'
+                              ? 'bg-white hover:bg-gray-50 border border-gray-100 shadow-sm'
                               : 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50'
                             }
                           `}
@@ -319,12 +334,12 @@ export default function PrototypePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
                       className={`
-                        rounded-3xl p-6
-                        ${theme === 'light' 
-                          ? 'bg-white shadow-lg shadow-gray-200/50' 
-                          : 'bg-gray-800 shadow-lg shadow-black/20'
-                        }
-                      `}
+                          rounded-3xl p-6
+                          ${theme === 'light'
+                            ? 'bg-white shadow-md ring-1 ring-inset ring-gray-100'
+                            : 'bg-gray-800 shadow-lg shadow-black/20'
+                          }
+                        `}
                     >
                       <div className="flex items-center justify-between mb-6">
                         <h3 className={`
@@ -353,7 +368,7 @@ export default function PrototypePage() {
                               flex items-center justify-between p-4 rounded-2xl
                               transition-all duration-300 group cursor-pointer
                               ${theme === 'light'
-                                ? 'bg-gray-50 hover:bg-gray-100 border border-gray-200/50'
+                                ? 'bg-white hover:bg-gray-50 border border-gray-100 shadow-sm'
                                 : 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50'
                               }
                             `}
@@ -413,12 +428,12 @@ export default function PrototypePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                       className={`
-                        rounded-3xl p-6
-                        ${theme === 'light' 
-                          ? 'bg-white shadow-lg shadow-gray-200/50' 
-                          : 'bg-gray-800 shadow-lg shadow-black/20'
-                        }
-                      `}
+                          rounded-3xl p-6
+                          ${theme === 'light'
+                            ? 'bg-white shadow-md ring-1 ring-inset ring-gray-100'
+                            : 'bg-gray-800 shadow-lg shadow-black/20'
+                          }
+                        `}
                     >
                       <div className="flex items-center justify-between mb-6">
                         <h3 className={`
@@ -447,7 +462,7 @@ export default function PrototypePage() {
                               flex items-center justify-between p-4 rounded-2xl
                               transition-all duration-300 group cursor-pointer
                               ${theme === 'light'
-                                ? 'bg-gray-50 hover:bg-gray-100 border border-gray-200/50'
+                                ? 'bg-white hover:bg-gray-50 border border-gray-100 shadow-sm'
                                 : 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50'
                               }
                             `}
@@ -500,8 +515,8 @@ export default function PrototypePage() {
                   transition={{ delay: 0.8 }}
                   className={`
                     rounded-3xl p-6
-                    ${theme === 'light' 
-                      ? 'bg-white shadow-lg shadow-gray-200/50' 
+                    ${theme === 'light'
+                      ? 'bg-white shadow-md ring-1 ring-inset ring-gray-100'
                       : 'bg-gray-800 shadow-lg shadow-black/20'
                     }
                   `}

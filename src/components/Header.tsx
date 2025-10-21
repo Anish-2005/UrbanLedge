@@ -15,9 +15,7 @@ export default function Header() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={`
         sticky top-0 z-50 backdrop-blur-xl border-b transition-all duration-300
-        bg-white/80 dark:bg-gray-900/80
-        border-gray-200/80 dark:border-gray-700/80
-        shadow-sm dark:shadow-gray-900/50
+        ${theme === 'light' ? 'bg-white/70 border-gray-200/80 shadow-sm' : 'bg-gray-900/80 border-gray-700/80'}
       `}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,9 +29,8 @@ export default function Header() {
           >
             <div className={`
               relative p-2 rounded-2xl bg-gradient-to-br shadow-lg
-              from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700
-              group hover:from-blue-600 hover:to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800
-              transition-all duration-300
+              ${theme === 'light' ? 'from-indigo-600 to-emerald-500 hover:from-indigo-700 hover:to-emerald-600' : 'from-blue-600 to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800'}
+              group transition-all duration-300
             `}>
               <Building2 size={20} className="text-white" />
               
@@ -44,7 +41,7 @@ export default function Header() {
             <div className="flex flex-col">
               <span className={`
                 text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent
-                from-gray-900 to-gray-700 dark:from-white dark:to-gray-200
+                ${theme === 'light' ? 'from-slate-900 to-indigo-700' : 'from-white to-gray-200'}
                 tracking-tight
               `}>
                 UrbanLedge
@@ -71,7 +68,7 @@ export default function Header() {
                 size={18}
                 className={`
                   absolute left-4 top-1/2 transform -translate-y-1/2
-                  text-gray-400 dark:text-gray-500
+                  ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'}
                   transition-colors duration-200
                 `}
               />
@@ -81,15 +78,12 @@ export default function Header() {
                 placeholder="Search properties, assessments, payments..."
                 className={`
                   w-full border-0 rounded-2xl py-3 pl-12 pr-4 text-sm
-                  bg-gray-100/80 dark:bg-gray-800/80
+                  ${theme === 'light' ? 'bg-white shadow-sm ring-1 ring-inset ring-gray-100 text-slate-900 placeholder-slate-400' : 'bg-gray-800/80 text-white placeholder-gray-400'}
                   backdrop-blur-sm
-                  text-gray-900 dark:text-white 
-                  placeholder-gray-500 dark:placeholder-gray-400
-                  focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50
+                  focus:ring-2 focus:ring-indigo-400/40
                   focus:bg-white dark:focus:bg-gray-800
                   outline-none transition-all duration-300
-                  shadow-inner
-                  hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+                  hover:bg-gray-50 dark:hover:bg-gray-700/80
                 `}
               />
               
@@ -97,9 +91,7 @@ export default function Header() {
               <div className={`
                 absolute right-3 top-1/2 transform -translate-y-1/2
                 px-2 py-1 rounded-lg text-xs font-medium
-                bg-gray-200/50 dark:bg-gray-700/50
-                text-gray-500 dark:text-gray-400
-                border border-gray-300/50 dark:border-gray-600/50
+                ${theme === 'light' ? 'bg-gray-100 text-gray-600 border border-gray-200' : 'bg-gray-700/50 text-gray-400 border border-gray-600/50'}
                 hidden lg:block
               `}>
                 ⌘K
@@ -120,10 +112,9 @@ export default function Header() {
               whileTap={{ scale: 0.95 }}
               className={`
                 relative p-2.5 rounded-2xl transition-all duration-300
-                bg-gray-100/80 dark:bg-gray-800/80
-                hover:bg-gray-200/80 dark:hover:bg-gray-700/80
-                text-gray-600 dark:text-gray-400
-                border border-transparent hover:border-gray-300/50 dark:hover:border-gray-600/50
+                ${theme === 'light' ? 'bg-white/60 hover:bg-gray-100 border border-gray-100' : 'bg-gray-800/80'}
+                ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}
+                hover:border-gray-300/50
               `}
               aria-label="Notifications"
             >
@@ -136,7 +127,7 @@ export default function Header() {
                 className={`
                   absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs
                   bg-red-500 text-white flex items-center justify-center
-                  border-2 border-white dark:border-gray-900
+                  ${theme === 'light' ? 'border-2 border-white' : 'border-2 border-gray-900'}
                   font-semibold
                 `}
               >
@@ -152,25 +143,23 @@ export default function Header() {
               whileHover={{ scale: 1.02 }}
               className={`
                 flex items-center gap-2 p-1.5 rounded-2xl
-                bg-gray-100/80 dark:bg-gray-800/80
-                hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+                ${theme === 'light' ? 'bg-white/60 hover:bg-gray-100 border border-gray-100' : 'bg-gray-800/80'}
                 transition-all duration-300
-                border border-transparent hover:border-gray-300/50 dark:hover:border-gray-600/50
               `}
             >
               <div className={`
                 w-8 h-8 rounded-xl bg-gradient-to-br
-                from-blue-500 to-purple-600 flex items-center justify-center
+                from-indigo-600 to-emerald-500 flex items-center justify-center
                 shadow-md
               `}>
                 <User size={16} className="text-white" />
               </div>
               
               <div className="hidden sm:block mr-2">
-                <p className="text-sm font-medium text-gray-900 dark:text-white leading-none">
+                <p className={`text-sm font-medium leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                   Welcome
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-none">
+                <p className={`text-xs leading-none ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                   Sign in to continue
                 </p>
               </div>
