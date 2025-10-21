@@ -1,6 +1,44 @@
 -- Oracle PL/SQL equivalents for assessment/payment logic
 -- Note: This uses autonomous transactions for receipt creation where helpful. Adjust privileges as required.
 
+/* Ensure required sequences exist before compiling procedures. This block is safe to run multiple times. */
+DECLARE
+  v_cnt INTEGER;
+  PROCEDURE ensure_seq(p_name VARCHAR2) IS
+    v_local_cnt INTEGER;
+  BEGIN
+    SELECT COUNT(*) INTO v_local_cnt FROM user_sequences WHERE sequence_name = UPPER(p_name);
+    IF v_local_cnt = 0 THEN
+      EXECUTE IMMEDIATE 'CREATE SEQUENCE ' || p_name || ' START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE';
+      BEGIN
+        DBMS_OUTPUT.PUT_LINE('Created sequence: ' || p_name);
+      EXCEPTION WHEN OTHERS THEN NULL;
+      END;
+    END IF;
+  EXCEPTION
+    WHEN OTHERS THEN
+      NULL; -- ignore errors here; sequence creation may require privileges
+  END;
+BEGIN
+  ensure_seq('role_seq');
+  ensure_seq('user_account_seq');
+  ensure_seq('owner_seq');
+  ensure_seq('ward_seq');
+  ensure_seq('property_type_seq');
+  ensure_seq('property_seq');
+  ensure_seq('tax_slab_seq');
+  ensure_seq('exemption_seq');
+  ensure_seq('assessment_seq');
+  ensure_seq('payment_seq');
+  ensure_seq('receipt_seq');
+  ensure_seq('audit_log_seq');
+EXCEPTION
+  WHEN OTHERS THEN
+    NULL; -- best-effort; if this fails, sequences may need to be created by the DBA
+END;
+/
+
+
 CREATE OR REPLACE PROCEDURE sp_generate_assessment(
   p_property_id IN NUMBER,
   p_fin_year IN VARCHAR2,
