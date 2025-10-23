@@ -21,32 +21,72 @@ export default function PrototypePage() {
   const { theme } = useTheme()
 
   useEffect(() => {
-    // Enhanced mock data
-    const mockProperties = [
-      { id: 1, address: '123 Main St', owner: 'John Doe', ward: 'Ward 1', value: 250000 },
-      { id: 2, address: '456 Oak Ave', owner: 'Sarah Wilson', ward: 'Ward 2', value: 180000 },
-      { id: 3, address: '789 Pine Rd', owner: 'Mike Johnson', ward: 'Ward 1', value: 320000 }
-    ]
-    
-    const mockAssessments = [
-      { id: 1, financialYear: '2024', assessedValue: 250000, totalDue: 1250, status: 'Pending', property: '123 Main St' },
-      { id: 2, financialYear: '2024', assessedValue: 180000, totalDue: 900, status: 'Paid', property: '456 Oak Ave' },
-      { id: 3, financialYear: '2024', assessedValue: 320000, totalDue: 1600, status: 'Overdue', property: '789 Pine Rd' }
-    ]
-    
-    const mockPayments = [
-      { id: 1, method: 'Credit Card', paidAmount: 1250, paidOn: new Date(), txRef: 'TX-001', property: '123 Main St' },
-      { id: 2, method: 'Bank Transfer', paidAmount: 900, paidOn: new Date(), txRef: 'TX-002', property: '456 Oak Ave' },
-      { id: 3, method: 'Cash', paidAmount: 800, paidOn: new Date(), txRef: 'TX-003', property: '789 Pine Rd' }
-    ]
+    // Load real data from server APIs. We fetch properties first because assessments/payments reference them.
+    async function init() {
+      try {
+        const [pRes, aRes, payRes] = await Promise.all([
+          fetch('/api/properties'),
+          fetch('/api/assessments'),
+          fetch('/api/payments')
+        ])
 
-    setProperties(mockProperties)
-    setAssessments(mockAssessments)
-    setPayments(mockPayments)
+        const pRows = pRes.ok ? await pRes.json() : []
+        const aRows = aRes.ok ? await aRes.json() : []
+        const payRows = payRes.ok ? await payRes.json() : []
+
+        // Normalize property ids to strings for easy matching in client
+        const props = (pRows ?? []).map((p: any) => ({
+          property_id: p.property_id ?? p.id ?? p.propertyId,
+          address: p.address || p.addr || p.property_address || '',
+          ward: p.ward || p.ward_name || p.ward_id || '',
+          land_area: Number(p.land_area ?? p.landArea ?? 0),
+          built_area: Number(p.built_area ?? p.builtArea ?? 0),
+          ptype: p.ptype || p.ptype_name || p.ptype_id || ''
+        }))
+
+        // Map assessments to include property address when available
+        const assessmentsMapped = (aRows ?? []).map((a: any) => ({
+          assess_id: a.assess_id ?? a.id,
+          property_id: a.property_id,
+          financial_year: a.financial_year ?? a.financialYear,
+          assessed_value: Number(a.assessed_value ?? a.assessedValue ?? 0),
+          base_tax: Number(a.base_tax ?? a.baseTax ?? 0),
+          total_due: Number(a.total_due ?? a.totalDue ?? 0),
+          status: a.status,
+          created_at: a.created_at ?? a.createdAt,
+          propertyAddress: (props.find((pp: any) => String(pp.property_id) === String(a.property_id)) || {}).address || ''
+        }))
+
+        // Map payments and attach receipt/assessment info when possible
+        const paymentsMapped = (payRows ?? []).map((p: any) => ({
+          payment_id: p.payment_id ?? p.id,
+          assess_id: p.assess_id ?? p.assessId ?? p.assessId,
+          paid_amount: Number(p.paid_amount ?? p.paidAmount ?? 0),
+          paid_on: p.paid_on ? new Date(p.paid_on) : p.paidOn ? new Date(p.paidOn) : new Date(),
+          payment_method: p.payment_method ?? p.method ?? p.payment_method,
+          transaction_ref: p.transaction_ref ?? p.txRef ?? p.transaction_ref,
+          propertyAddress: ''
+        }))
+
+        // Attach propertyAddress to payments by joining on assessment
+        paymentsMapped.forEach((pay: any) => {
+          const asmt = assessmentsMapped.find((a: any) => String(a.assess_id) === String(pay.assess_id))
+          if (asmt) pay.propertyAddress = asmt.propertyAddress
+        })
+
+        setProperties(props)
+        setAssessments(assessmentsMapped)
+        setPayments(paymentsMapped)
+      } catch (err) {
+        console.error('Failed to load dashboard data', err)
+      }
+    }
+    init()
   }, [])
 
-  const totalDue = assessments.reduce((s, a) => s + (Number(a.totalDue ?? 0)), 0)
-  const revenue = payments.reduce((s, p) => s + (Number(p.paidAmount ?? 0)), 0)
+  // Compute live metrics from fetched data
+  const totalDue = assessments.reduce((s, a) => s + (Number(a.total_due ?? a.totalDue ?? 0)), 0)
+  const revenue = payments.reduce((s, p) => s + (Number(p.paid_amount ?? p.paidAmount ?? 0)), 0)
 
   const stats = [
     { 
@@ -70,7 +110,7 @@ export default function PrototypePage() {
     { 
       label: 'Properties', 
       value: properties.length.toString(), 
-      change: '+4.7%', 
+      change: (properties.length > 0 ? '+0.0%' : '0%'), 
       icon: Building, 
       gradient: 'from-blue-500 to-indigo-600',
       description: 'Registered properties',
@@ -87,12 +127,22 @@ export default function PrototypePage() {
     }
   ]
 
-  const wards = [
-    { name: 'Ward 1', amount: '$1,200.00', properties: 42, progress: 75, gradient: 'from-blue-500 to-cyan-600' },
-    { name: 'Ward 2', amount: '$3,400.00', properties: 68, progress: 90, gradient: 'from-emerald-500 to-teal-600' },
-    { name: 'Ward 3', amount: '$0.00', properties: 23, progress: 0, gradient: 'from-gray-400 to-gray-500' },
-    { name: 'Ward 4', amount: '$2,150.00', properties: 51, progress: 60, gradient: 'from-purple-500 to-pink-600' }
-  ]
+  // Aggregate wards from properties and assessments
+  const wardMap: Record<string, { name: string; properties: number; amount: number; gradient: string }> = {}
+  properties.forEach((p: any, idx: number) => {
+    const name = p.ward || 'Unassigned'
+    if (!wardMap[name]) wardMap[name] = { name, properties: 0, amount: 0, gradient: idx % 2 === 0 ? 'from-blue-500 to-cyan-600' : 'from-emerald-500 to-teal-600' }
+    wardMap[name].properties += 1
+  })
+  // Sum total_due per ward by joining assessments -> properties
+  assessments.forEach((a: any) => {
+    const prop = properties.find((p: any) => String(p.property_id) === String(a.property_id))
+    const wardName = prop?.ward || 'Unassigned'
+    if (!wardMap[wardName]) wardMap[wardName] = { name: wardName, properties: 0, amount: 0, gradient: 'from-gray-400 to-gray-500' }
+    wardMap[wardName].amount += Number(a.total_due ?? a.totalDue ?? 0)
+  })
+
+  const wards = Object.values(wardMap).map(w => ({ name: w.name, amount: `$${w.amount.toFixed(2)}`, properties: w.properties, progress: Math.min(100, Math.round((w.properties / Math.max(1, properties.length)) * 100)), gradient: w.gradient }))
 
   return (
     <div className={`
@@ -353,7 +403,7 @@ export default function PrototypePage() {
                       <div className="space-y-4">
                         {assessments.map((assessment, index) => (
                           <motion.div
-                            key={assessment.id}
+                            key={assessment.assess_id ?? assessment.id ?? index}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.7 + index * 0.1 }}
@@ -378,20 +428,14 @@ export default function PrototypePage() {
                                 <FileText size={20} />
                               </div>
                               <div>
-                                <div className={`
-                                  font-semibold
-                                  ${theme === 'light' ? 'text-gray-900' : 'text-white'}
-                                `}>
-                                  {assessment.property}
+                                <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                  {assessment.propertyAddress || assessment.property || 'Unknown property'}
                                 </div>
-                                <div className={`
-                                  text-sm
-                                  ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
-                                `}>
-                                  ${assessment.assessedValue?.toLocaleString()} •{' '}
+                                <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                  ${' '}{(assessment.assessed_value ?? assessment.assessedValue ?? 0).toLocaleString()} •{' '}
                                   <span className={
-                                    assessment.status === 'Paid' ? 'text-emerald-600 dark:text-emerald-400' :
-                                    assessment.status === 'Overdue' ? 'text-red-600 dark:text-red-400' :
+                                    (assessment.status === 'PAID' || assessment.status === 'Paid') ? 'text-emerald-600 dark:text-emerald-400' :
+                                    (assessment.status === 'OVERDUE' || assessment.status === 'Overdue') ? 'text-red-600 dark:text-red-400' :
                                     'text-amber-600 dark:text-amber-400'
                                   }>
                                     {assessment.status}
@@ -407,6 +451,7 @@ export default function PrototypePage() {
                                 bg-blue-500 hover:bg-blue-600 text-white
                                 transition-colors duration-200
                               `}
+                              onClick={() => router.push(`/assessments?assess_id=${assessment.assess_id ?? assessment.id}`)}
                             >
                               View
                             </motion.button>
@@ -447,7 +492,7 @@ export default function PrototypePage() {
                       <div className="space-y-4">
                         {payments.map((payment, index) => (
                           <motion.div
-                            key={payment.id}
+                            key={payment.payment_id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8 + index * 0.1 }}
@@ -468,18 +513,12 @@ export default function PrototypePage() {
                                 <DollarSign size={20} />
                               </div>
                               <div>
-                                <div className={`
-                                  font-semibold
-                                  ${theme === 'light' ? 'text-gray-900' : 'text-white'}
-                                `}>
-                                  {payment.property}
+                                <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                  {payment.propertyAddress || payment.property || 'Unknown property'}
                                 </div>
-                                <div className={`
-                                  text-sm flex items-center gap-2
-                                  ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
-                                `}>
+                                <div className={`text-sm flex items-center gap-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                                   <Calendar size={14} />
-                                  {payment.paidOn.toLocaleDateString()} • {payment.txRef}
+                                  {(payment.paid_on ? new Date(payment.paid_on) : payment.paidOn ? new Date(payment.paidOn) : new Date()).toLocaleDateString()} • {payment.transaction_ref ?? payment.txRef}
                                 </div>
                               </div>
                             </div>
@@ -491,8 +530,9 @@ export default function PrototypePage() {
                                 bg-emerald-500 hover:bg-emerald-600 text-white
                                 transition-colors duration-200
                               `}
-                            >
-                              Receipt
+                            onClick={() => router.push(`/payments?payment_id=${payment.payment_id ?? payment.id}`)}
+                          >
+                            Receipt
                             </motion.button>
                           </motion.div>
                         ))}
