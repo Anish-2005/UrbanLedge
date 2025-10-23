@@ -136,7 +136,8 @@ export const mockService = {
   assessments: {
     list: (): Assessment[] => { ensureInitialized(); return read<Assessment[]>('assessments', []) },
     create: (a: Assessment) => { ensureInitialized(); const arr = read<Assessment[]>('assessments', []); arr.unshift(a); write('assessments', arr); return a },
-    update: (a: Assessment) => { ensureInitialized(); const arr = read<Assessment[]>('assessments', []); const idx = arr.findIndex(x => x.id === a.id); if (idx >= 0) arr[idx] = a; write('assessments', arr); return a }
+    update: (a: Assessment) => { ensureInitialized(); const arr = read<Assessment[]>('assessments', []); const idx = arr.findIndex(x => x.id === a.id); if (idx >= 0) arr[idx] = a; write('assessments', arr); return a },
+    delete: (id: string) => { ensureInitialized(); const arr = read<Assessment[]>('assessments', []); write('assessments', arr.filter(x => x.id !== id)) }
   },
 
   payments: {

@@ -20,8 +20,12 @@ export default function AssessmentsPage() {
   const { theme } = useTheme()
 
   useEffect(() => { 
-    fetchList() 
-    fetchProperties()
+    // load properties first so we can map property addresses when loading assessments
+    async function init() {
+      await fetchProperties()
+      await fetchList()
+    }
+    init()
   }, [])
 
   async function fetchList() {
@@ -38,7 +42,7 @@ export default function AssessmentsPage() {
         totalDue: Number(r.totalDue),
         status: r.status,
         propertyId: r.propertyId,
-        propertyAddress: mockService.properties.list().find(p => p.id === r.propertyId)?.address || '',
+        propertyAddress: properties.find((p: any) => String(p.id) === String(r.propertyId))?.address || '',
         createdAt: new Date().toISOString()
       }))
       setItems(mapped)
@@ -51,8 +55,14 @@ export default function AssessmentsPage() {
 
   async function fetchProperties() {
     try {
-      const rows = mockService.properties.list()
-      setProperties((rows ?? []).map((r: any) => ({ id: r.id, address: r.address, ward: r.ward })))
+      const res = await fetch('/api/properties')
+      if (!res.ok) throw new Error('Failed to fetch properties')
+      const rows = await res.json()
+      setProperties((rows ?? []).map((r: any) => ({
+        id: String(r.property_id ?? r.id ?? r.propertyId),
+        address: r.address || r.addr || r.property_address || '',
+        ward: r.ward || r.ward_name || r.ward_id || ''
+      })))
     } catch (e) { /* ignore */ }
   }
 
@@ -101,6 +111,48 @@ export default function AssessmentsPage() {
       }
     } catch (e) { 
       console.error(e) 
+    }
+  }
+
+  // Download a single assessment as CSV
+  async function downloadAssessment(assessment: any) {
+    try {
+      const headers = ['id','propertyId','propertyAddress','financialYear','assessedValue','baseTax','exemptionPct','penalty','totalDue','status','createdAt']
+      const values = [
+        assessment.id,
+        assessment.propertyId,
+        assessment.propertyAddress,
+        assessment.financialYear,
+        assessment.assessedValue,
+        assessment.baseTax,
+        assessment.exemptionPct,
+        assessment.penalty,
+        assessment.totalDue,
+        assessment.status,
+        assessment.createdAt,
+      ]
+
+      const escapeCsv = (v: any) => {
+        if (v === null || v === undefined) return ''
+        if (typeof v === 'number') return String(v)
+        return '"' + String(v).replace(/"/g, '""') + '"'
+      }
+
+      const csvRows = [headers.join(','), values.map(escapeCsv).join(',')]
+      const csv = csvRows.join('\r\n')
+
+      // Add BOM so Excel recognizes UTF-8
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `assessment-${assessment.id}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Download failed', err)
     }
   }
 
@@ -160,14 +212,14 @@ export default function AssessmentsPage() {
               }
             `}
             required
-          >
-            <option value="">Select a property</option>
-            {properties.map(property => (
-              <option key={property.id} value={property.id}>
-                {property.address} (Ward {property.ward})
-              </option>
-            ))}
-          </select>
+            >
+              <option value="">Select a property</option>
+              {properties.map(property => (
+                <option key={property.id} value={property.id}>
+                  {property.address} {property.ward ? `(Ward ${property.ward})` : ''}
+                </option>
+              ))}
+            </select>
         </div>
 
         <div>
@@ -662,6 +714,7 @@ export default function AssessmentsPage() {
                                   <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => downloadAssessment(assessment)}
                                     className={`
                                       p-2 rounded-xl text-sm font-medium transition-colors shadow-sm
                                       ${theme === 'light'
@@ -671,6 +724,25 @@ export default function AssessmentsPage() {
                                     `}
                                   >
                                     <Download size={14} />
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={async () => {
+                                      if (!confirm('Delete this assessment? This action cannot be undone.')) return
+                                      try {
+                                        mockService.assessments.delete(String(assessment.id))
+                                        setItems(prev => prev.filter(i => i.id !== assessment.id))
+                                      } catch (err) {
+                                        console.error('Failed to delete assessment', err)
+                                      }
+                                    }}
+                                    className={`
+                                      p-2 rounded-xl text-sm font-medium transition-colors shadow-sm
+                                      ${theme === 'light' ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-red-600/30 text-red-300 hover:bg-red-500/30'}
+                                    `}
+                                  >
+                                    <Trash2 size={14} />
                                   </motion.button>
                                 </div>
                               </div>
