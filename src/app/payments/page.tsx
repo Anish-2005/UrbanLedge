@@ -71,6 +71,60 @@ export default function PaymentsPage() {
     }
   }
 
+  // Open a printable receipt window and trigger print (user can save as PDF)
+  function printReceipt(payment: any) {
+    try {
+      const assessment = assessments.find(a => String(a.id) === String(payment.assessId))
+      const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt ${payment.id}</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#111} .header{display:flex;justify-content:space-between;align-items:center}.brand{font-size:18px;font-weight:700}.section{margin-top:16px}.row{display:flex;justify-content:space-between;margin:6px 0}.total{font-size:18px;font-weight:700;margin-top:12px}@media print{button{display:none}}</style></head><body>
+        <div class="header"><div class="brand">UrbanLedge</div><div>Receipt</div></div>
+        <div class="section">
+          <div class="row"><span>Receipt ID</span><span>${payment.id}</span></div>
+          <div class="row"><span>Transaction Ref</span><span>${payment.txRef || ''}</span></div>
+          <div class="row"><span>Date</span><span>${new Date(payment.paidOn).toLocaleString()}</span></div>
+        </div>
+        <div class="section">
+          <div class="row"><span>Property</span><span>${assessment?.propertyAddress || ''}</span></div>
+          <div class="row"><span>Financial Year</span><span>${assessment?.financialYear || ''}</span></div>
+        </div>
+        <div class="section">
+          <div class="row"><span>Method</span><span>${payment.method}</span></div>
+          <div class="row total"><span>Total Paid</span><span>$${Number(payment.paidAmount).toFixed(2)}</span></div>
+        </div>
+        <div style="margin-top:18px"><button onclick="window.print();">Print / Save as PDF</button></div>
+      </body></html>`
+
+      // Open synchronously in response to user click to avoid popup blocking
+      const w = window.open('about:blank', '_blank')
+      if (w) {
+        // Write content and focus; printing is triggered by the user via the button in the new window
+        w.document.open()
+        w.document.write(html)
+        w.document.close()
+        w.focus()
+      } else {
+        // Fallback: create downloadable HTML file that the user can open and print
+        try {
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `receipt-${payment.id}.html`
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          URL.revokeObjectURL(url)
+          alert('Popups are blocked. The receipt HTML was downloaded; open it and print to PDF (File → Print).')
+        } catch (err) {
+          console.error('Fallback failed', err)
+          alert('Unable to open receipt window. Please allow popups or check downloads.')
+        }
+      }
+    } catch (err) {
+      console.error('Failed to print receipt', err)
+      alert('Failed to generate receipt')
+    }
+  }
+
   const PaymentForm = ({ assessId, onPay }: any) => {
     const [amount, setAmount] = useState('')
     const [method, setMethod] = useState('CREDIT_CARD')
@@ -636,6 +690,7 @@ export default function PaymentsPage() {
                                   <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => printReceipt(payment)}
                                     className="px-3 py-1 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
                                   >
                                     Download Receipt
@@ -643,6 +698,7 @@ export default function PaymentsPage() {
                                   <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => printReceipt(payment)}
                                     className={`
                                       p-2 rounded-xl text-sm font-medium transition-colors shadow-sm
                                       ${theme === 'light'
