@@ -2,15 +2,25 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signInWithRedirect } from 'firebase/auth'
 
-// Provided Firebase config (will be used as defaults). You can override via NEXT_PUBLIC_* env vars.
+// Firebase configuration must come from environment variables (NEXT_PUBLIC_*).
+// Do NOT store API keys or app secrets directly in source. Set them in your environment
+// or in a secrets manager and expose only NEXT_PUBLIC_* values needed by the client.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? 'AIzaSyC3DGyNMgmKcFbfeUG-A1iu779C3_TV-u8',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? 'urbanledge-f926f.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? 'urbanledge-f926f',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? 'urbanledge-f926f.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '260137984173',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? '1:260137984173:web:111b3b849437a9764b2624',
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? 'G-699MB2XY2W'
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+}
+
+// Helpful runtime warning for local dev when env vars are missing
+if (typeof window !== 'undefined') {
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    // eslint-disable-next-line no-console
+    console.warn('[firebaseClient] Missing Firebase environment variables. Please set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID.')
+  }
 }
 
 if (!getApps().length) {
