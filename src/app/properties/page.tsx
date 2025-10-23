@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { mockService } from '@/lib/mockService'
+// data is loaded from server-side API; no local mock fallbacks here
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function PropertiesPage() {
@@ -58,31 +58,11 @@ export default function PropertiesPage() {
       setLoading(false)
     } catch (err) {
       console.error('fetch properties error:', err)
-      try {
-        const rows = mockService.properties.list()
-        const mapped = (rows ?? []).map((r: any) => ({
-          id: r.id,
-          address: r.address,
-          ward: r.ward,
-          ptype: r.ptype,
-          usage: r.usage,
-          landArea: Number(r.landArea ?? 0),
-          builtArea: Number(r.builtArea ?? 0),
-          owner: r.ownerId ?? null,
-          status: 'Active',
-          lastAssessment: new Date().toISOString()
-        }))
-        setItems(mapped)
-        setLoading(false)
-        setError(null)
-        return
-      } catch (e) {
-        const ee: any = err
-        const message = ee?.message ?? ee?.error ?? (typeof ee === 'object' ? JSON.stringify(ee) : String(ee)) ?? 'Unknown error'
-        setError(message)
-        setItems([])
-        setLoading(false)
-      }
+      const ee: any = err
+      const message = ee?.message ?? ee?.error ?? (typeof ee === 'object' ? JSON.stringify(ee) : String(ee)) ?? 'Unknown error'
+      setError(message)
+      setItems([])
+      setLoading(false)
     }
   }
 
@@ -91,18 +71,13 @@ export default function PropertiesPage() {
     try {
       const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
       if (!res.ok) {
-        mockService.properties.delete(String(id))
-      } else {
-        const body = await res.json()
-        if (body?._mock) {
-          mockService.properties.delete(String(id))
-        }
+        const text = await res.text()
+        throw new Error(text || 'Delete failed')
       }
       setItems(prev => prev.filter(item => item.id !== id))
     } catch (err) {
       console.error('delete property error:', err)
-      mockService.properties.delete(String(id))
-      setItems(prev => prev.filter(item => item.id !== id))
+      setError(String(err))
     }
   }
 
@@ -112,19 +87,8 @@ export default function PropertiesPage() {
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
       const res = await fetch('/api/properties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) {
-        const newProp = {
-          id: 'p' + Date.now(),
-          ownerId: 'u2',
-          address: payload.address,
-          ward: payload.ward,
-          ptype: payload.ptype,
-          landArea: payload.land_area,
-          builtArea: payload.built_area,
-          usage: payload.usage
-        }
-        mockService.properties.create(newProp)
-        setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
-        return
+        const text = await res.text()
+        throw new Error(text || 'Create failed')
       }
       const created = await res.json()
       const newItem = {
@@ -142,10 +106,7 @@ export default function PropertiesPage() {
       setItems(prev => [newItem, ...prev])
     } catch (err) {
       console.error('create property error:', err)
-      const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
-      const newProp = { id: 'p' + Date.now(), ownerId: 'u2', address: payload.address, ward: payload.ward, ptype: payload.ptype, landArea: payload.land_area, builtArea: payload.built_area, usage: payload.usage }
-      mockService.properties.create(newProp)
-      setItems(prev => [{ id: newProp.id, address: newProp.address, ward: newProp.ward, ptype: newProp.ptype, usage: newProp.usage, landArea: newProp.landArea, builtArea: newProp.builtArea, owner: newProp.ownerId, status: 'Active', lastAssessment: new Date().toISOString() }, ...prev])
+      setError(String(err))
     }
   }
 
@@ -155,7 +116,16 @@ export default function PropertiesPage() {
 
   async function saveEdit(changes: any) {
     try {
-      const payload = { ...editing, ...changes }
+      const merged = { ...editing, ...changes }
+      const payload = {
+        property_id: merged.id ?? merged.property_id,
+        address: merged.address,
+        ward: merged.ward,
+        ptype: merged.ptype,
+        usage: merged.usage,
+        land_area: Number(merged.landArea ?? merged.land_area ?? 0),
+        built_area: Number(merged.builtArea ?? merged.built_area ?? 0)
+      }
       const res = await fetch('/api/properties', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) {
         const text = await res.text()
@@ -202,7 +172,12 @@ export default function PropertiesPage() {
     },
     { 
       label: 'Total Wards', 
-      value: '4',
+      value: (() => {
+        try {
+          const s = new Set(items.map(it => String(it.ward ?? it.ward_id ?? '').trim()).filter(Boolean))
+          return s.size.toString()
+        } catch { return '0' }
+      })(),
       change: '+0%', 
       icon: Target, 
       gradient: 'from-purple-500 to-pink-600',
@@ -211,7 +186,14 @@ export default function PropertiesPage() {
     },
     { 
       label: 'Avg. Land Area', 
-      value: '775m²',
+      value: (() => {
+        try {
+          if (!items || items.length === 0) return '0m²'
+          const sum = items.reduce((s, it) => s + (Number(it.landArea ?? it.land_area ?? 0) || 0), 0)
+          const avg = Math.round(sum / items.length)
+          return `${avg}m²`
+        } catch { return '0m²' }
+      })(),
       change: '+1.2%', 
       icon: SquareStack, 
       gradient: 'from-amber-500 to-orange-600',
@@ -620,6 +602,42 @@ export default function PropertiesPage() {
                           `}
                           value={editing.ptype} 
                           onChange={e => setEditing({ ...editing, ptype: e.target.value })} 
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Land Area (m²)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.landArea ?? editing.land_area ?? ''}
+                          onChange={e => setEditing({ ...editing, landArea: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Built Area (m²)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className={`
+                            w-full border rounded-2xl p-3 mt-1
+                            ${theme === 'light'
+                              ? 'border-gray-200 bg-white text-gray-900'
+                              : 'border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                          value={editing.builtArea ?? editing.built_area ?? ''}
+                          onChange={e => setEditing({ ...editing, builtArea: Number(e.target.value) })}
                         />
                       </div>
                       <div>

@@ -31,11 +31,23 @@ export async function query(text: string, params?: any[]) {
 // Optional: create tables if not exist (basic subset)
 export async function ensureTables() {
   await query(`
+    -- Lookup tables
+    CREATE TABLE IF NOT EXISTS ward (
+      ward_id SERIAL PRIMARY KEY,
+      name VARCHAR(150) UNIQUE NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS property_type (
+      ptype_id SERIAL PRIMARY KEY,
+      name VARCHAR(100) UNIQUE NOT NULL
+    );
+
+    -- Core property table (references lookup ids)
     CREATE TABLE IF NOT EXISTS property (
       property_id SERIAL PRIMARY KEY,
       owner_id INT,
-      ward VARCHAR(150),
-      ptype VARCHAR(100),
+      ward_id INT REFERENCES ward(ward_id) ON DELETE SET NULL,
+      ptype_id INT REFERENCES property_type(ptype_id) ON DELETE SET NULL,
       address TEXT,
       land_area NUMERIC(10,2) DEFAULT 0,
       built_area NUMERIC(10,2) DEFAULT 0,
@@ -43,9 +55,10 @@ export async function ensureTables() {
       created_at TIMESTAMP DEFAULT now()
     );
 
+    -- Assessments for properties
     CREATE TABLE IF NOT EXISTS assessment (
       assess_id SERIAL PRIMARY KEY,
-      property_id INT NOT NULL,
+      property_id INT NOT NULL REFERENCES property(property_id) ON DELETE CASCADE,
       financial_year VARCHAR(9) NOT NULL,
       assessed_value NUMERIC(14,2) NOT NULL,
       base_tax NUMERIC(12,2) NOT NULL,
@@ -56,9 +69,10 @@ export async function ensureTables() {
       created_at TIMESTAMP DEFAULT now()
     );
 
+    -- Payments linked to assessments
     CREATE TABLE IF NOT EXISTS payment (
       payment_id SERIAL PRIMARY KEY,
-      assess_id INT NOT NULL,
+      assess_id INT NOT NULL REFERENCES assessment(assess_id) ON DELETE CASCADE,
       paid_amount NUMERIC(12,2) NOT NULL,
       paid_on TIMESTAMP DEFAULT now(),
       payment_method VARCHAR(50),
