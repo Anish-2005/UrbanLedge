@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SidebarNav from '@/components/SidebarNav'
 import { motion } from 'framer-motion'
 import { 
@@ -16,9 +16,26 @@ import Header from '@/components/Header'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function AdminPage() {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('tax-slabs')
-  const { theme } = useTheme()
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers()
+    }
+  }, [activeTab])
+
+  async function fetchUsers() {
+    try {
+      setLoadingUsers(true)
+      const res = await fetch('/api/users')
+      if (res.ok) {
+        const data = await res.json()
+        setUsers(data)
+      }
+    } catch (err) {
+      console.error('fetch users error:', err)
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
 
   const [taxSlabs, setTaxSlabs] = useState([
     { id: 1, type: 'Residential', minArea: 0, maxArea: 150, rate: 10, status: 'Active' },
@@ -33,12 +50,8 @@ export default function AdminPage() {
     { id: 3, category: 'Low Income', percentage: 25, minAge: 0, status: 'Inactive' }
   ])
 
-  const [wards, setWards] = useState([
-    { id: 1, name: 'Ward 1', properties: 42, revenue: 12500, officer: 'John Smith', status: 'Active' },
-    { id: 2, name: 'Ward 2', properties: 68, revenue: 18900, officer: 'Sarah Johnson', status: 'Active' },
-    { id: 3, name: 'Ward 3', properties: 23, revenue: 8200, officer: 'Mike Brown', status: 'Active' },
-    { id: 4, name: 'Ward 4', properties: 51, revenue: 15600, officer: 'Emily Davis', status: 'Inactive' }
-  ])
+  const [users, setUsers] = useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
 
   const stats = [
     { 
@@ -647,17 +660,59 @@ export default function AdminPage() {
                 )}
 
                 {activeTab === 'users' && (
-                  <div className="text-center py-12">
-                    <UserCog size={64} className={`mx-auto mb-4 ${theme === 'light' ? 'text-gray-300' : 'text-gray-600'}`} />
-                    <h3 className={`
-                      text-xl font-semibold mb-2
-                      ${theme === 'light' ? 'text-gray-900' : 'text-white'}
-                    `}>
-                      User Role Management
-                    </h3>
-                    <p className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}>
-                      Manage user permissions and access levels
-                    </p>
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className={`
+                        text-2xl font-bold
+                        ${theme === 'light' ? 'text-gray-900' : 'text-white'}
+                      `}>
+                        User Management
+                      </h2>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`
+                          flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold
+                          bg-gradient-to-r from-emerald-600 to-green-600 text-white
+                          shadow-md hover:shadow-lg transition-all duration-200
+                        `}
+                      >
+                        <Plus size={18} />
+                        Add User
+                      </motion.button>
+                    </div>
+                    {loadingUsers ? (
+                      <div className="text-center py-8">Loading users...</div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {users.map((user) => (
+                          <div key={user.user_id} className={`
+                            rounded-2xl p-4
+                            ${theme === 'light'
+                              ? 'bg-white shadow-sm ring-1 ring-inset ring-gray-100'
+                              : 'bg-gray-700/50 ring-1 ring-inset ring-gray-600/50'
+                            }
+                          `}>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                {user.full_name?.[0] || user.username[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                  {user.full_name || user.username}
+                                </div>
+                                <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                  {user.username} • {user.roles?.join(', ') || 'No roles'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.email} • {user.status}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

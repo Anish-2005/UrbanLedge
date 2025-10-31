@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const { Pool } = require('pg')
+require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') })
 
 const sqlPath = path.resolve(process.cwd(), 'sql', 'schema_postgres.sql')
 if (!fs.existsSync(sqlPath)) {
