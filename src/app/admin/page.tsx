@@ -16,6 +16,17 @@ import Header from '@/components/Header'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function AdminPage() {
+  const { theme } = useTheme()
+
+  // UI state used throughout the component
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('tax-slabs')
+  const [wards, setWards] = useState([
+    { id: 1, name: 'Ward 1', officer: 'Officer A', properties: 120, revenue: 12500, status: 'Active' },
+    { id: 2, name: 'Ward 2', officer: 'Officer B', properties: 95, revenue: 9800, status: 'Active' },
+    { id: 3, name: 'Ward 3', officer: 'Officer C', properties: 40, revenue: 4200, status: 'Inactive' },
+  ])
+
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers()
