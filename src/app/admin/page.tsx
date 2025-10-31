@@ -21,17 +21,79 @@ export default function AdminPage() {
   // UI state used throughout the component
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('tax-slabs')
-  const [wards, setWards] = useState([
-    { id: 1, name: 'Ward 1', officer: 'Officer A', properties: 120, revenue: 12500, status: 'Active' },
-    { id: 2, name: 'Ward 2', officer: 'Officer B', properties: 95, revenue: 9800, status: 'Active' },
-    { id: 3, name: 'Ward 3', officer: 'Officer C', properties: 40, revenue: 4200, status: 'Inactive' },
-  ])
+
+  // Data states
+  const [taxSlabs, setTaxSlabs] = useState<any[]>([])
+  const [exemptions, setExemptions] = useState<any[]>([])
+  const [wards, setWards] = useState<any[]>([])
+  const [users, setUsers] = useState<any[]>([])
+  const [reports, setReports] = useState<any>({})
+
+  // Loading states
+  const [loadingTaxSlabs, setLoadingTaxSlabs] = useState(false)
+  const [loadingExemptions, setLoadingExemptions] = useState(false)
+  const [loadingWards, setLoadingWards] = useState(false)
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [loadingReports, setLoadingReports] = useState(false)
+
+  // Modal states
+  const [editingTaxSlab, setEditingTaxSlab] = useState<any | null>(null)
+  const [editingExemption, setEditingExemption] = useState<any | null>(null)
+  const [editingWard, setEditingWard] = useState<any | null>(null)
+  const [editingUser, setEditingUser] = useState<any | null>(null)
 
   useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers()
-    }
+    if (activeTab === 'tax-slabs') fetchTaxSlabs()
+    else if (activeTab === 'exemptions') fetchExemptions()
+    else if (activeTab === 'wards') fetchWards()
+    else if (activeTab === 'users') fetchUsers()
+    else if (activeTab === 'reports') fetchReports()
   }, [activeTab])
+
+  async function fetchTaxSlabs() {
+    try {
+      setLoadingTaxSlabs(true)
+      const res = await fetch('/api/tax-slabs')
+      if (res.ok) {
+        const data = await res.json()
+        setTaxSlabs(data)
+      }
+    } catch (err) {
+      console.error('fetch tax slabs error:', err)
+    } finally {
+      setLoadingTaxSlabs(false)
+    }
+  }
+
+  async function fetchExemptions() {
+    try {
+      setLoadingExemptions(true)
+      const res = await fetch('/api/exemptions')
+      if (res.ok) {
+        const data = await res.json()
+        setExemptions(data)
+      }
+    } catch (err) {
+      console.error('fetch exemptions error:', err)
+    } finally {
+      setLoadingExemptions(false)
+    }
+  }
+
+  async function fetchWards() {
+    try {
+      setLoadingWards(true)
+      const res = await fetch('/api/wards')
+      if (res.ok) {
+        const data = await res.json()
+        setWards(data)
+      }
+    } catch (err) {
+      console.error('fetch wards error:', err)
+    } finally {
+      setLoadingWards(false)
+    }
+  }
 
   async function fetchUsers() {
     try {
@@ -48,26 +110,29 @@ export default function AdminPage() {
     }
   }
 
-  const [taxSlabs, setTaxSlabs] = useState([
-    { id: 1, type: 'Residential', minArea: 0, maxArea: 150, rate: 10, status: 'Active' },
-    { id: 2, type: 'Residential', minArea: 151, maxArea: 300, rate: 12, status: 'Active' },
-    { id: 3, type: 'Commercial', minArea: 0, maxArea: 1000, rate: 15, status: 'Active' },
-    { id: 4, type: 'Industrial', minArea: 0, maxArea: 5000, rate: 20, status: 'Inactive' }
-  ])
-
-  const [exemptions, setExemptions] = useState([
-    { id: 1, category: 'Senior Citizen', percentage: 50, minAge: 65, status: 'Active' },
-    { id: 2, category: 'Disabled Person', percentage: 60, minAge: 0, status: 'Active' },
-    { id: 3, category: 'Low Income', percentage: 25, minAge: 0, status: 'Inactive' }
-  ])
-
-  const [users, setUsers] = useState<any[]>([])
-  const [loadingUsers, setLoadingUsers] = useState(false)
+  async function fetchReports() {
+    try {
+      setLoadingReports(true)
+      const res1 = await fetch('/api/reports?type=total_collected')
+      const res2 = await fetch('/api/reports?type=pending_payments')
+      const res3 = await fetch('/api/reports?type=property_stats')
+      if (res1.ok && res2.ok && res3.ok) {
+        const totalCollected = await res1.json()
+        const pendingPayments = await res2.json()
+        const propertyStats = await res3.json()
+        setReports({ totalCollected, pendingPayments, propertyStats })
+      }
+    } catch (err) {
+      console.error('fetch reports error:', err)
+    } finally {
+      setLoadingReports(false)
+    }
+  }
 
   const stats = [
     { 
       label: 'Total Wards', 
-      value: '4',
+      value: wards.length.toString(),
       change: '+0%', 
       icon: MapPinned, 
       gradient: 'from-blue-500 to-indigo-600',
@@ -76,7 +141,7 @@ export default function AdminPage() {
     },
     { 
       label: 'Active Tax Slabs', 
-      value: '3',
+      value: taxSlabs.filter(s => s.active !== false).length.toString(),
       change: '+1', 
       icon: FileBarChart, 
       gradient: 'from-emerald-500 to-teal-600',
@@ -85,7 +150,7 @@ export default function AdminPage() {
     },
     { 
       label: 'Exemption Types', 
-      value: '3',
+      value: exemptions.filter(e => e.active !== false).length.toString(),
       change: '+0%', 
       icon: Percent, 
       gradient: 'from-purple-500 to-pink-600',
@@ -94,7 +159,7 @@ export default function AdminPage() {
     },
     { 
       label: 'System Revenue', 
-      value: '$55.2K',
+      value: reports.totalCollected ? `$${reports.totalCollected[0]?.sum || 0}` : '$0',
       change: '+12.8%', 
       icon: DollarSign, 
       gradient: 'from-amber-500 to-orange-600',
@@ -134,31 +199,31 @@ export default function AdminPage() {
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${slab.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+            <div className={`w-3 h-3 rounded-full ${slab.active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
             <div>
               <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                {slab.type}
+                {slab.property_type_name || `Type ${slab.ptype_id}`}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                Area: {slab.minArea}-{slab.maxArea} m²
+                Area: {slab.min_area}-{slab.max_area} m²
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-indigo-600">${slab.rate}/m²</div>
+            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/m²</div>
             <div className={`text-xs px-2 py-1 rounded-full ${
-              slab.status === 'Active' 
+              slab.active 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
                 : 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
             }`}>
-              {slab.status}
+              {slab.active ? 'Active' : 'Inactive'}
             </div>
           </div>
         </div>
         
         <div className="flex items-center justify-between pt-3 border-t border-gray-200/50">
           <div className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-            Tax Slab #{slab.id}
+            Tax Slab #{slab.slab_id}
           </div>
           <div className="flex items-center gap-2">
             <motion.button
@@ -172,14 +237,14 @@ export default function AdminPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onToggle(slab.id)}
+              onClick={() => onToggle(slab.slab_id)}
               className={`p-2 rounded-xl transition-colors shadow-sm ${
-                slab.status === 'Active'
+                slab.active
                   ? 'bg-amber-600 text-white hover:bg-amber-700'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
               }`}
             >
-              {slab.status === 'Active' ? <Clock size={14} /> : <CheckCircle size={14} />}
+              {slab.active ? <Clock size={14} /> : <CheckCircle size={14} />}
             </motion.button>
           </div>
         </div>
@@ -209,32 +274,31 @@ export default function AdminPage() {
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${exemption.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+            <div className={`w-3 h-3 rounded-full ${exemption.active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
             <div>
               <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                {exemption.category}
+                {exemption.exemption_name}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                {exemption.minAge > 0 ? `Age ${exemption.minAge}+ • ` : ''}
-                {exemption.percentage}% discount
+                {exemption.description || 'No description'}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-emerald-600">{exemption.percentage}%</div>
+            <div className="text-lg font-bold text-emerald-600">{exemption.exemption_percentage}%</div>
             <div className={`text-xs px-2 py-1 rounded-full ${
-              exemption.status === 'Active' 
+              exemption.active 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
                 : 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
             }`}>
-              {exemption.status}
+              {exemption.active ? 'Active' : 'Inactive'}
             </div>
           </div>
         </div>
         
         <div className="flex items-center justify-between pt-3 border-t border-gray-200/50">
           <div className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-            Exemption #{exemption.id}
+            Exemption #{exemption.exemption_id}
           </div>
           <div className="flex items-center gap-2">
             <motion.button
@@ -248,14 +312,14 @@ export default function AdminPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onToggle(exemption.id)}
+              onClick={() => onToggle(exemption.exemption_id)}
               className={`p-2 rounded-xl transition-colors shadow-sm ${
-                exemption.status === 'Active'
+                exemption.active
                   ? 'bg-amber-600 text-white hover:bg-amber-700'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
               }`}
             >
-              {exemption.status === 'Active' ? <Clock size={14} /> : <CheckCircle size={14} />}
+              {exemption.active ? <Clock size={14} /> : <CheckCircle size={14} />}
             </motion.button>
           </div>
         </div>
@@ -285,24 +349,20 @@ export default function AdminPage() {
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${ward.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+            <div className={`w-3 h-3 rounded-full bg-emerald-500`} />
             <div>
               <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                 {ward.name}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                Officer: {ward.officer}
+                {ward.area_description || 'No description'}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-indigo-600">${ward.revenue.toLocaleString()}</div>
-            <div className={`text-xs px-2 py-1 rounded-full ${
-              ward.status === 'Active' 
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
-            }`}>
-              {ward.status}
+            <div className="text-lg font-bold text-indigo-600">${ward.total_revenue?.toLocaleString() || '0'}</div>
+            <div className={`text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400`}>
+              Active
             </div>
           </div>
         </div>
@@ -310,17 +370,17 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 gap-4 text-sm mb-3">
           <div>
             <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Properties</div>
-            <div className={`font-medium ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{ward.properties}</div>
+            <div className={`font-medium ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{ward.property_count || 0}</div>
           </div>
           <div>
             <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Revenue</div>
-            <div className={`font-medium ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>${ward.revenue.toLocaleString()}</div>
+            <div className={`font-medium ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>${ward.total_revenue?.toLocaleString() || '0'}</div>
           </div>
         </div>
         
         <div className="flex items-center justify-between pt-3 border-t border-gray-200/50">
           <div className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-            Ward #{ward.id}
+            Ward #{ward.ward_id}
           </div>
           <div className="flex items-center gap-2">
             <motion.button
@@ -334,14 +394,10 @@ export default function AdminPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onToggle(ward.id)}
-              className={`p-2 rounded-xl transition-colors shadow-sm ${
-                ward.status === 'Active'
-                  ? 'bg-amber-600 text-white hover:bg-amber-700'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
+              onClick={() => onToggle(ward.ward_id)}
+              className="p-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors shadow-sm"
             >
-              {ward.status === 'Active' ? <Clock size={14} /> : <CheckCircle size={14} />}
+              <Clock size={14} />
             </motion.button>
           </div>
         </div>
@@ -350,27 +406,37 @@ export default function AdminPage() {
   )
 
   const handleEditTaxSlab = (slab: any) => {
-    alert(`Edit tax slab: ${slab.type} (${slab.minArea}-${slab.maxArea}m²)`)
+    alert(`Edit tax slab: ${slab.property_type_name || `Type ${slab.ptype_id}`} (${slab.min_area}-${slab.max_area}m²)`)
   }
 
-  const handleToggleTaxSlab = (id: number) => {
-    setTaxSlabs(prev => prev.map(slab => 
-      slab.id === id 
-        ? { ...slab, status: slab.status === 'Active' ? 'Inactive' : 'Active' }
-        : slab
-    ))
+  const handleToggleTaxSlab = async (id: number) => {
+    try {
+      const response = await fetch(`/api/tax-slabs/${id}/toggle`, { method: 'PUT' })
+      if (response.ok) {
+        fetchTaxSlabs() // Refresh the data
+      } else {
+        console.error('Failed to toggle tax slab')
+      }
+    } catch (error) {
+      console.error('Error toggling tax slab:', error)
+    }
   }
 
   const handleEditExemption = (exemption: any) => {
-    alert(`Edit exemption: ${exemption.category} (${exemption.percentage}%)`)
+    alert(`Edit exemption: ${exemption.exemption_name} (${exemption.exemption_percentage}%)`)
   }
 
-  const handleToggleExemption = (id: number) => {
-    setExemptions(prev => prev.map(exemption => 
-      exemption.id === id 
-        ? { ...exemption, status: exemption.status === 'Active' ? 'Inactive' : 'Active' }
-        : exemption
-    ))
+  const handleToggleExemption = async (id: number) => {
+    try {
+      const response = await fetch(`/api/exemptions/${id}/toggle`, { method: 'PUT' })
+      if (response.ok) {
+        fetchExemptions() // Refresh the data
+      } else {
+        console.error('Failed to toggle exemption')
+      }
+    } catch (error) {
+      console.error('Error toggling exemption:', error)
+    }
   }
 
   const handleEditWard = (ward: any) => {
@@ -378,11 +444,8 @@ export default function AdminPage() {
   }
 
   const handleToggleWard = (id: number) => {
-    setWards(prev => prev.map(ward => 
-      ward.id === id 
-        ? { ...ward, status: ward.status === 'Active' ? 'Inactive' : 'Active' }
-        : ward
-    ))
+    // For now, just show alert since wards don't have active/inactive status
+    alert(`Ward management: ${id}`)
   }
 
   return (
@@ -590,7 +653,7 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {taxSlabs.map((slab, index) => (
                         <TaxSlabCard
-                          key={slab.id}
+                          key={slab.slab_id}
                           slab={slab}
                           onEdit={handleEditTaxSlab}
                           onToggle={handleToggleTaxSlab}
@@ -625,7 +688,7 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {exemptions.map((exemption, index) => (
                         <ExemptionCard
-                          key={exemption.id}
+                          key={exemption.exemption_id}
                           exemption={exemption}
                           onEdit={handleEditExemption}
                           onToggle={handleToggleExemption}
@@ -660,7 +723,7 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {wards.map((ward, index) => (
                         <WardCard
-                          key={ward.id}
+                          key={ward.ward_id}
                           ward={ward}
                           onEdit={handleEditWard}
                           onToggle={handleToggleWard}
