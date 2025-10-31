@@ -18,7 +18,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-15.5.6-black?style=flat&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/PostgreSQL-15-336791?style=flat&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/SQL-StructuredQueryLanguage-CC2927?style=flat&logo=database&logoColor=white" alt="SQL" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=flat&logo=tailwind-css" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Firebase-9.0-orange?style=flat&logo=firebase" alt="Firebase" />
   <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat&logo=node.js" alt="Node.js" />
@@ -193,7 +193,7 @@ graph TB
 | Requirement | Version | Description |
 |:-----------:|:-------:|:-----------:|
 | **Node.js** | 18.17+ | JavaScript runtime |
-| **PostgreSQL** | 15+ | Database server |
+| **SQL** | 15+ | Database server |
 | **npm/yarn** | Latest | Package manager |
 | **Firebase** | Account | Authentication service |
 
@@ -202,78 +202,6 @@ graph TB
 ### ⚡ **Installation**
 
 <details open>
-<summary><strong>📦 Step-by-Step Setup</strong></summary>
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Anish-2005/UrbanLedge.git
-   cd UrbanLedge
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Environment Configuration**
-   ```bash
-   cp .env.example .env.local
-   ```
-
-   Configure your `.env.local`:
-   ```env
-   # Database Configuration
-   DATABASE_URL="postgresql://username:password@localhost:5432/urbanledge"
-
-   # Firebase Authentication
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-   NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
-
-   # Security & SSL
-   PG_SSL_REJECT_UNAUTHORIZED=false
-   NEXTAUTH_SECRET=your-secret-key-here
-   NEXTAUTH_URL=http://localhost:3000
-
-   # Optional: External Services
-   STRIPE_PUBLISHABLE_KEY=pk_test_...
-   STRIPE_SECRET_KEY=sk_test_...
-   SENDGRID_API_KEY=SG.xxx
-   ```
-
-4. **Database Setup**
-   ```bash
-   # Initialize database schema
-   npm run apply-schema
-
-   # Load sample data (optional)
-   npm run apply-sample-data
-
-   # Verify connection
-   npm run check-db-connection
-   ```
-
-5. **Firebase Setup**
-   - Create project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable **Google Authentication** in Authentication → Sign-in method
-   - Add your domain to authorized domains
-   - Copy configuration keys to `.env.local`
-
-6. **Launch Development Server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-   🌐 **Visit** [http://localhost:3000](http://localhost:3000)
-
-</details>
 
 ### 🎬 **Demo Data**
 
@@ -350,7 +278,7 @@ The system comes with comprehensive demo data including:
 
 ### 🏗️ **Complete Database Architecture**
 
-UrbanLedge uses a robust **PostgreSQL database** with 12 interconnected tables designed for comprehensive property tax management. The schema supports complex relationships between users, properties, assessments, payments, and audit trails.
+UrbanLedge uses a robust **SQL database** with 12 interconnected tables designed for comprehensive property tax management. The schema supports complex relationships between users, properties, assessments, payments, and audit trails.
 
 </div>
 
@@ -2687,7 +2615,7 @@ We offer multiple support channels:
 ### [v1.0.0] - 2024-10-31
 - 🎉 **Initial Release**
 - ✅ Complete property tax management system
-- ✅ PostgreSQL database with full schema
+- ✅ SQL database with full schema
 - ✅ Next.js 15.5.6 frontend with TypeScript
 - ✅ Firebase authentication integration
 - ✅ Admin dashboard with real-time analytics
@@ -2864,7 +2792,7 @@ UrbanLedge wouldn't exist without the incredible support from our community, con
 #### 🗄️ **Database & Storage**
 | Technology | Purpose | License | Website |
 |:----------:|:-------:|:-------:|:-------:|
-| **[PostgreSQL](https://postgresql.org/)** | Primary Database | PostgreSQL | <img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white" alt="PostgreSQL" /> |
+| **[SQL](https://postgresql.org/)** | Primary Database | SQL | <img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white" alt="SQL" /> |
 | **[Firebase](https://firebase.google.com/)** | Authentication & Hosting | Apache 2.0 | <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black" alt="Firebase" /> |
 
 #### 🎨 **Frontend Technologies**
@@ -2906,37 +2834,15 @@ We're deeply grateful to the **open-source community** that makes projects like 
 | **🏛️ Municipal Tech Alliance** | Community Partnership | [munitech.org](https://munitech.org) |
 | **💻 Code for America** | Open Government Support | [codeforamerica.org](https://codeforamerica.org) |
 | **🌍 Open Source Initiative** | License Compliance | [opensource.org](https://opensource.org) |
-| **📊 PostgreSQL Community** | Database Expertise | [postgresql.org](https://postgresql.org) |
+| **📊 SQL Community** | Database Expertise | [postgresql.org](https://postgresql.org) |
 
 </div>
 
-### 📣 **Testimonials**
-
-<div align="center">
-
-> **"UrbanLedge has revolutionized how we handle property taxes. The automation and transparency have saved us countless hours and improved citizen satisfaction."**
->
-> — *Sarah Johnson, City Manager, Springfield*
-
-> **"As a developer, the clean API and comprehensive documentation made integration seamless. The community support is outstanding!"**
->
-> — *Marcus Chen, Full-Stack Developer*
-
-> **"The attention to security and compliance gave us confidence to migrate our entire tax system. Excellent work!"**
->
-> — *Dr. Priya Patel, IT Director, Metro County*
-
-</div>
 
 ### 🎁 **Special Thanks**
 
 <div align="center">
 
-#### 👨‍💼 **Project Leadership**
-- **Anish Kumar** - Project Founder & Lead Developer
-- **Community Contributors** - For their invaluable code contributions
-- **Beta Testers** - For their feedback and patience
-- **Documentation Writers** - For making UrbanLedge accessible
 
 #### 🎯 **Early Adopters**
 We're especially grateful to our early adopters who took a chance on UrbanLedge and provided crucial feedback during our initial development phase.
@@ -2953,7 +2859,6 @@ Inspired by the vision of transparent, efficient, and citizen-centric government
 <div align="center">
 
 [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Anish-2005/UrbanLedge)
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Anish-2005/UrbanLedge)
 
 </div>
 
