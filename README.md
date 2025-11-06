@@ -136,7 +136,7 @@ graph TB
 
     %% Database Layer
     subgraph "🗄️ Database Layer"
-        J[(PostgreSQL 15)]
+        J[(SQL 15)]
         K[User Accounts<br/>Role Management]
         L[Properties<br/>Tax Slabs<br/>Assessments]
         M[Payments<br/>Receipts<br/>Audit Logs]
@@ -255,8 +255,8 @@ The system comes with comprehensive demo data including:
 | Technology | Version | Purpose |
 |:----------:|:-------:|:-------:|
 | **Node.js** | 18+ | Runtime Environment |
-| **PostgreSQL** | 15 | Primary Database |
-| **pg** | Latest | PostgreSQL Client |
+| **SQL** | 15 | Primary Database |
+| **pg** | Latest | SQL Client |
 | **Next.js API** | 15.5.6 | API Routes |
 | **Firebase Auth** | 9.0 | Authentication |
 | **JWT** | Latest | Token Management |
