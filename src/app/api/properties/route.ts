@@ -29,7 +29,10 @@ export async function POST(req: Request) {
     if (!authHeader) return new NextResponse('Unauthorized', { status: 401 })
   }
   parsedBody = await req.json()
-  const { address, ward, ptype, land_area, built_area, usage } = parsedBody
+  const { address, ward, ptype, land_area, built_area, usage, owner_id } = parsedBody
+  
+  // Use default owner_id if not provided (for demo purposes)
+  const final_owner_id = owner_id || 1
   // Map ward and ptype names to IDs (create if missing), then insert property in a transaction
   try {
     await query('BEGIN')
@@ -48,7 +51,7 @@ export async function POST(req: Request) {
       ptype_id = r.rows[0].ptype_id
     }
 
-    const ins = await query('INSERT INTO property(owner_id, ward_id, ptype_id, address, land_area, built_area, usage) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING property_id', [null, ward_id, ptype_id, address, land_area, built_area, usage])
+    const ins = await query('INSERT INTO property(owner_id, ward_id, ptype_id, address, land_area, built_area, usage) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING property_id', [final_owner_id, ward_id, ptype_id, address, land_area, built_area, usage])
     const pid = ins.rows[0].property_id
     const final = await query(`SELECT p.property_id, p.address, w.name AS ward, pt.name AS ptype, p.land_area, p.built_area, p.usage, p.owner_id FROM property p LEFT JOIN ward w ON p.ward_id = w.ward_id LEFT JOIN property_type pt ON p.ptype_id = pt.ptype_id WHERE p.property_id = $1`, [pid])
     await auditLog(null, 'CREATE', 'property', pid.toString(), `Created property: ${address}`)
