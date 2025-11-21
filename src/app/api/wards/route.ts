@@ -77,8 +77,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const ward_id = searchParams.get('id')
+    const body = await request.json()
+    const { ward_id } = body
 
     if (!ward_id) {
       return NextResponse.json({ error: 'Ward ID is required' }, { status: 400 })

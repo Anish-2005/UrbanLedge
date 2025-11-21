@@ -19,19 +19,19 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await ensureTables()
-    const { name, percentage, valid_from, valid_to } = await request.json()
+    const { exemption_name, exemption_percentage, description, valid_from, valid_to, active } = await request.json()
 
-    if (!name || percentage === undefined) {
+    if (!exemption_name || exemption_percentage === undefined) {
       return NextResponse.json({ error: 'Name and percentage are required' }, { status: 400 })
     }
 
     const queryText = `
-      INSERT INTO exemption (name, percentage, valid_from, valid_to)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO exemption (name, percentage, valid_from, valid_to, active)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING exemp_id as exemption_id, name as exemption_name, percentage as exemption_percentage, active, '' as description
     `
 
-    const result = await query(queryText, [name, percentage, valid_from, valid_to])
+    const result = await query(queryText, [exemption_name, exemption_percentage, valid_from || null, valid_to || null, active !== false])
     return NextResponse.json(result.rows[0])
   } catch (error) {
     console.error('Error creating exemption:', error)
@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await ensureTables()
-    const { exemption_id, name, percentage, valid_from, valid_to, active } = await request.json()
+    const { exemption_id, exemption_name, exemption_percentage, description, valid_from, valid_to, active } = await request.json()
 
-    if (!exemption_id || !name) {
+    if (!exemption_id || !exemption_name) {
       return NextResponse.json({ error: 'Exemption ID and name are required' }, { status: 400 })
     }
 
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest) {
       RETURNING exemp_id as exemption_id, name as exemption_name, percentage as exemption_percentage, active, '' as description
     `
 
-    const result = await query(queryText, [name, percentage, valid_from, valid_to, active, exemption_id])
+    const result = await query(queryText, [exemption_name, exemption_percentage, valid_from || null, valid_to || null, active !== false, exemption_id])
 
     if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Exemption not found' }, { status: 404 })
@@ -71,8 +71,8 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await ensureTables()
-    const { searchParams } = new URL(request.url)
-    const exemption_id = searchParams.get('id')
+    const body = await request.json()
+    const { exemption_id } = body
 
     if (!exemption_id) {
       return NextResponse.json({ error: 'Exemption ID is required' }, { status: 400 })

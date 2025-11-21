@@ -177,7 +177,7 @@ export default function AdminPage() {
     { id: 'system', name: 'System Settings', icon: Sliders }
   ]
 
-  const TaxSlabCard = ({ slab, onEdit, onToggle }: any) => (
+  const TaxSlabCard = ({ slab, onEdit, onToggle, onDelete }: any) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -246,13 +246,21 @@ export default function AdminPage() {
             >
               {slab.active ? <Clock size={14} /> : <CheckCircle size={14} />}
             </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onDelete(slab.slab_id)}
+              className="p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+            >
+              <Trash2 size={14} />
+            </motion.button>
           </div>
         </div>
       </div>
     </motion.div>
   )
 
-  const ExemptionCard = ({ exemption, onEdit, onToggle }: any) => (
+  const ExemptionCard = ({ exemption, onEdit, onToggle, onDelete }: any) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -321,13 +329,21 @@ export default function AdminPage() {
             >
               {exemption.active ? <Clock size={14} /> : <CheckCircle size={14} />}
             </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onDelete(exemption.exemption_id)}
+              className="p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+            >
+              <Trash2 size={14} />
+            </motion.button>
           </div>
         </div>
       </div>
     </motion.div>
   )
 
-  const WardCard = ({ ward, onEdit, onToggle }: any) => (
+  const WardCard = ({ ward, onEdit, onToggle, onDelete }: any) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -394,10 +410,10 @@ export default function AdminPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onToggle(ward.ward_id)}
-              className="p-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors shadow-sm"
+              onClick={() => onDelete(ward.ward_id)}
+              className="p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm"
             >
-              <Clock size={14} />
+              <Trash2 size={14} />
             </motion.button>
           </div>
         </div>
@@ -405,15 +421,569 @@ export default function AdminPage() {
     </motion.div>
   )
 
+  // Modal Components
+  const TaxSlabModal = ({ slab, onSave, onClose }: any) => {
+    const [formData, setFormData] = useState(slab)
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`
+            w-full max-w-2xl rounded-3xl p-6
+            ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}
+          `}
+        >
+          <h2 className={`text-2xl font-bold mb-6 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            {slab.slab_id ? 'Edit Tax Slab' : 'Add Tax Slab'}
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Property Type ID
+              </label>
+              <input
+                type="number"
+                value={formData.ptype_id}
+                onChange={(e) => setFormData({ ...formData, ptype_id: parseInt(e.target.value) })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Property Type Name
+              </label>
+              <input
+                type="text"
+                value={formData.property_type_name}
+                onChange={(e) => setFormData({ ...formData, property_type_name: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                placeholder="e.g., Residential, Commercial"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                  Min Area (m²)
+                </label>
+                <input
+                  type="number"
+                  value={formData.min_area}
+                  onChange={(e) => setFormData({ ...formData, min_area: parseFloat(e.target.value) })}
+                  className={`
+                    w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                    ${theme === 'light'
+                      ? 'border border-gray-300 bg-white text-gray-900'
+                      : 'border border-gray-600 bg-gray-700 text-white'
+                    }
+                  `}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                  Max Area (m²)
+                </label>
+                <input
+                  type="number"
+                  value={formData.max_area}
+                  onChange={(e) => setFormData({ ...formData, max_area: parseFloat(e.target.value) })}
+                  className={`
+                    w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                    ${theme === 'light'
+                      ? 'border border-gray-300 bg-white text-gray-900'
+                      : 'border border-gray-600 bg-gray-700 text-white'
+                    }
+                  `}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Base Rate per m² ($)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.base_rate_per_sq_m}
+                onChange={(e) => setFormData({ ...formData, base_rate_per_sq_m: parseFloat(e.target.value) })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.active}
+                onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label className={`text-sm font-medium ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Active
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSave(formData)}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-2xl py-3 font-medium shadow-md hover:shadow-lg"
+            >
+              Save
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className={`flex-1 rounded-2xl py-3 font-medium ${
+                theme === 'light'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Cancel
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  const ExemptionModal = ({ exemption, onSave, onClose }: any) => {
+    const [formData, setFormData] = useState(exemption)
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`
+            w-full max-w-2xl rounded-3xl p-6
+            ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}
+          `}
+        >
+          <h2 className={`text-2xl font-bold mb-6 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            {exemption.exemption_id ? 'Edit Exemption' : 'Add Exemption'}
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Exemption Name
+              </label>
+              <input
+                type="text"
+                value={formData.exemption_name}
+                onChange={(e) => setFormData({ ...formData, exemption_name: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                placeholder="e.g., Senior Citizen, Veterans"
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Exemption Percentage (%)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.exemption_percentage}
+                onChange={(e) => setFormData({ ...formData, exemption_percentage: parseFloat(e.target.value) })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                placeholder="Description of the exemption"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.active}
+                onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label className={`text-sm font-medium ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Active
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSave(formData)}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-2xl py-3 font-medium shadow-md hover:shadow-lg"
+            >
+              Save
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className={`flex-1 rounded-2xl py-3 font-medium ${
+                theme === 'light'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Cancel
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  const WardModal = ({ ward, onSave, onClose }: any) => {
+    const [formData, setFormData] = useState(ward)
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`
+            w-full max-w-2xl rounded-3xl p-6
+            ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}
+          `}
+        >
+          <h2 className={`text-2xl font-bold mb-6 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            {ward.ward_id ? 'Edit Ward' : 'Add Ward'}
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Ward Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                placeholder="e.g., Ward 1, Downtown District"
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Area Description
+              </label>
+              <textarea
+                value={formData.area_description}
+                onChange={(e) => setFormData({ ...formData, area_description: e.target.value })}
+                rows={3}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                placeholder="Description of the ward area"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSave(formData)}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-2xl py-3 font-medium shadow-md hover:shadow-lg"
+            >
+              Save
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className={`flex-1 rounded-2xl py-3 font-medium ${
+                theme === 'light'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Cancel
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  const UserModal = ({ user, onSave, onClose }: any) => {
+    const [formData, setFormData] = useState(user)
+
+    const toggleRole = (role: string) => {
+      const roles = formData.roles || []
+      if (roles.includes(role)) {
+        setFormData({ ...formData, roles: roles.filter((r: string) => r !== role) })
+      } else {
+        setFormData({ ...formData, roles: [...roles, role] })
+      }
+    }
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`
+            w-full max-w-2xl rounded-3xl p-6
+            ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}
+          `}
+        >
+          <h2 className={`text-2xl font-bold mb-6 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            {user.user_id ? 'Edit User' : 'Add User'}
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Username
+              </label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+                required
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Roles
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {['ADMIN', 'OWNER', 'ASSESSOR', 'CASHIER'].map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => toggleRole(role)}
+                    className={`
+                      px-4 py-2 rounded-xl font-medium transition-all
+                      ${(formData.roles || []).includes(role)
+                        ? 'bg-indigo-600 text-white'
+                        : theme === 'light'
+                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }
+                    `}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className={`
+                  w-full rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                  ${theme === 'light'
+                    ? 'border border-gray-300 bg-white text-gray-900'
+                    : 'border border-gray-600 bg-gray-700 text-white'
+                  }
+                `}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSave(formData)}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-2xl py-3 font-medium shadow-md hover:shadow-lg"
+            >
+              Save
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className={`flex-1 rounded-2xl py-3 font-medium ${
+                theme === 'light'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Cancel
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
   const handleEditTaxSlab = (slab: any) => {
-    alert(`Edit tax slab: ${slab.property_type_name || `Type ${slab.ptype_id}`} (${slab.min_area}-${slab.max_area}m²)`)
+    setEditingTaxSlab(slab)
+  }
+
+  const handleAddTaxSlab = () => {
+    setEditingTaxSlab({
+      slab_id: null,
+      ptype_id: '',
+      property_type_name: '',
+      min_area: '',
+      max_area: '',
+      base_rate_per_sq_m: '',
+      active: true
+    })
+  }
+
+  const handleSaveTaxSlab = async (slab: any) => {
+    try {
+      const method = slab.slab_id ? 'PUT' : 'POST'
+      const url = slab.slab_id ? `/api/tax-slabs` : '/api/tax-slabs'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slab)
+      })
+      
+      if (response.ok) {
+        setEditingTaxSlab(null)
+        fetchTaxSlabs()
+      } else {
+        alert('Failed to save tax slab')
+      }
+    } catch (error) {
+      console.error('Error saving tax slab:', error)
+      alert('Error saving tax slab')
+    }
   }
 
   const handleToggleTaxSlab = async (id: number) => {
     try {
       const response = await fetch(`/api/tax-slabs/${id}/toggle`, { method: 'PUT' })
       if (response.ok) {
-        fetchTaxSlabs() // Refresh the data
+        fetchTaxSlabs()
       } else {
         console.error('Failed to toggle tax slab')
       }
@@ -422,15 +992,69 @@ export default function AdminPage() {
     }
   }
 
+  const handleDeleteTaxSlab = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this tax slab?')) return
+    
+    try {
+      const response = await fetch(`/api/tax-slabs`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slab_id: id })
+      })
+      
+      if (response.ok) {
+        fetchTaxSlabs()
+      } else {
+        alert('Failed to delete tax slab')
+      }
+    } catch (error) {
+      console.error('Error deleting tax slab:', error)
+      alert('Error deleting tax slab')
+    }
+  }
+
   const handleEditExemption = (exemption: any) => {
-    alert(`Edit exemption: ${exemption.exemption_name} (${exemption.exemption_percentage}%)`)
+    setEditingExemption(exemption)
+  }
+
+  const handleAddExemption = () => {
+    setEditingExemption({
+      exemption_id: null,
+      exemption_name: '',
+      exemption_percentage: '',
+      description: '',
+      active: true
+    })
+  }
+
+  const handleSaveExemption = async (exemption: any) => {
+    try {
+      const method = exemption.exemption_id ? 'PUT' : 'POST'
+      const url = '/api/exemptions'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exemption)
+      })
+      
+      if (response.ok) {
+        setEditingExemption(null)
+        fetchExemptions()
+      } else {
+        alert('Failed to save exemption')
+      }
+    } catch (error) {
+      console.error('Error saving exemption:', error)
+      alert('Error saving exemption')
+    }
   }
 
   const handleToggleExemption = async (id: number) => {
     try {
       const response = await fetch(`/api/exemptions/${id}/toggle`, { method: 'PUT' })
       if (response.ok) {
-        fetchExemptions() // Refresh the data
+        fetchExemptions()
       } else {
         console.error('Failed to toggle exemption')
       }
@@ -439,13 +1063,144 @@ export default function AdminPage() {
     }
   }
 
+  const handleDeleteExemption = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this exemption?')) return
+    
+    try {
+      const response = await fetch(`/api/exemptions`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exemption_id: id })
+      })
+      
+      if (response.ok) {
+        fetchExemptions()
+      } else {
+        alert('Failed to delete exemption')
+      }
+    } catch (error) {
+      console.error('Error deleting exemption:', error)
+      alert('Error deleting exemption')
+    }
+  }
+
   const handleEditWard = (ward: any) => {
-    alert(`Edit ward: ${ward.name}`)
+    setEditingWard(ward)
+  }
+
+  const handleAddWard = () => {
+    setEditingWard({
+      ward_id: null,
+      name: '',
+      area_description: ''
+    })
+  }
+
+  const handleSaveWard = async (ward: any) => {
+    try {
+      const method = ward.ward_id ? 'PUT' : 'POST'
+      const url = '/api/wards'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ward)
+      })
+      
+      if (response.ok) {
+        setEditingWard(null)
+        fetchWards()
+      } else {
+        alert('Failed to save ward')
+      }
+    } catch (error) {
+      console.error('Error saving ward:', error)
+      alert('Error saving ward')
+    }
+  }
+
+  const handleDeleteWard = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this ward?')) return
+    
+    try {
+      const response = await fetch(`/api/wards`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ward_id: id })
+      })
+      
+      if (response.ok) {
+        fetchWards()
+      } else {
+        alert('Failed to delete ward')
+      }
+    } catch (error) {
+      console.error('Error deleting ward:', error)
+      alert('Error deleting ward')
+    }
   }
 
   const handleToggleWard = (id: number) => {
-    // For now, just show alert since wards don't have active/inactive status
     alert(`Ward management: ${id}`)
+  }
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user)
+  }
+
+  const handleAddUser = () => {
+    setEditingUser({
+      user_id: null,
+      username: '',
+      full_name: '',
+      email: '',
+      roles: [],
+      status: 'ACTIVE'
+    })
+  }
+
+  const handleSaveUser = async (user: any) => {
+    try {
+      const method = user.user_id ? 'PUT' : 'POST'
+      const url = '/api/users'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      })
+      
+      if (response.ok) {
+        setEditingUser(null)
+        fetchUsers()
+      } else {
+        alert('Failed to save user')
+      }
+    } catch (error) {
+      console.error('Error saving user:', error)
+      alert('Error saving user')
+    }
+  }
+
+  const handleDeleteUser = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this user?')) return
+    
+    try {
+      const response = await fetch(`/api/users`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: id })
+      })
+      
+      if (response.ok) {
+        fetchUsers()
+      } else {
+        alert('Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Error deleting user')
+    }
   }
 
   return (
@@ -640,6 +1395,7 @@ export default function AdminPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={handleAddTaxSlab}
                         className={`
                           flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold
                           bg-gradient-to-r from-emerald-600 to-green-600 text-white
@@ -657,6 +1413,7 @@ export default function AdminPage() {
                           slab={slab}
                           onEdit={handleEditTaxSlab}
                           onToggle={handleToggleTaxSlab}
+                          onDelete={handleDeleteTaxSlab}
                         />
                       ))}
                     </div>
@@ -675,6 +1432,7 @@ export default function AdminPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={handleAddExemption}
                         className={`
                           flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold
                           bg-gradient-to-r from-emerald-600 to-green-600 text-white
@@ -692,6 +1450,7 @@ export default function AdminPage() {
                           exemption={exemption}
                           onEdit={handleEditExemption}
                           onToggle={handleToggleExemption}
+                          onDelete={handleDeleteExemption}
                         />
                       ))}
                     </div>
@@ -710,6 +1469,7 @@ export default function AdminPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={handleAddWard}
                         className={`
                           flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold
                           bg-gradient-to-r from-emerald-600 to-green-600 text-white
@@ -727,6 +1487,7 @@ export default function AdminPage() {
                           ward={ward}
                           onEdit={handleEditWard}
                           onToggle={handleToggleWard}
+                          onDelete={handleDeleteWard}
                         />
                       ))}
                     </div>
@@ -745,6 +1506,7 @@ export default function AdminPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={handleAddUser}
                         className={`
                           flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold
                           bg-gradient-to-r from-emerald-600 to-green-600 text-white
@@ -767,17 +1529,37 @@ export default function AdminPage() {
                               : 'bg-gray-700/50 ring-1 ring-inset ring-gray-600/50'
                             }
                           `}>
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                {user.full_name?.[0] || user.username[0].toUpperCase()}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                  {user.full_name?.[0] || user.username[0].toUpperCase()}
+                                </div>
+                                <div>
+                                  <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                    {user.full_name || user.username}
+                                  </div>
+                                  <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                    {user.username} • {user.roles?.join(', ') || 'No roles'}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                  {user.full_name || user.username}
-                                </div>
-                                <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                  {user.username} • {user.roles?.join(', ') || 'No roles'}
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <motion.button
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => handleEditUser(user)}
+                                  className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+                                >
+                                  <Edit2 size={14} />
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => handleDeleteUser(user.user_id)}
+                                  className="p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+                                >
+                                  <Trash2 size={14} />
+                                </motion.button>
                               </div>
                             </div>
                             <div className="text-sm text-gray-500">
@@ -824,6 +1606,36 @@ export default function AdminPage() {
           </main>
         </div>
       </div>
+
+      {/* Modals */}
+      {editingTaxSlab && (
+        <TaxSlabModal
+          slab={editingTaxSlab}
+          onSave={handleSaveTaxSlab}
+          onClose={() => setEditingTaxSlab(null)}
+        />
+      )}
+      {editingExemption && (
+        <ExemptionModal
+          exemption={editingExemption}
+          onSave={handleSaveExemption}
+          onClose={() => setEditingExemption(null)}
+        />
+      )}
+      {editingWard && (
+        <WardModal
+          ward={editingWard}
+          onSave={handleSaveWard}
+          onClose={() => setEditingWard(null)}
+        />
+      )}
+      {editingUser && (
+        <UserModal
+          user={editingUser}
+          onSave={handleSaveUser}
+          onClose={() => setEditingUser(null)}
+        />
+      )}
     </div>
   )
 }
