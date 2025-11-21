@@ -2,7 +2,6 @@
 
 import { Pool } from 'pg'
 
-// Lazily initialize pool so module import doesn't throw when DATABASE_URL is missing.
 let pool: Pool | null = null
 
 function getPool() {
@@ -11,7 +10,6 @@ function getPool() {
   if (!connectionString) {
     throw new Error('DATABASE_URL not set')
   }
-  // Support TLS connections for hosts like Render Postgres. Use PG_SSL_REJECT_UNAUTHORIZED to control strict cert validation.
   const rejectUnauthorized = process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true' ? true : false
   pool = new Pool({ connectionString, ssl: { rejectUnauthorized } as any })
   return pool
