@@ -28,6 +28,7 @@ export default function AdminPage() {
   const [wards, setWards] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [reports, setReports] = useState<any>({})
+  const [activities, setActivities] = useState<any[]>([])
 
   // Loading states
   const [loadingTaxSlabs, setLoadingTaxSlabs] = useState(false)
@@ -35,6 +36,7 @@ export default function AdminPage() {
   const [loadingWards, setLoadingWards] = useState(false)
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [loadingReports, setLoadingReports] = useState(false)
+  const [loadingActivities, setLoadingActivities] = useState(false)
 
   // Modal states
   const [editingTaxSlab, setEditingTaxSlab] = useState<any | null>(null)
@@ -48,6 +50,7 @@ export default function AdminPage() {
     else if (activeTab === 'wards') fetchWards()
     else if (activeTab === 'users') fetchUsers()
     else if (activeTab === 'reports') fetchReports()
+    else if (activeTab === 'activities') fetchActivities()
   }, [activeTab])
 
   async function fetchTaxSlabs() {
@@ -129,6 +132,35 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchActivities() {
+    try {
+      setLoadingActivities(true)
+      const res = await fetch('/api/activities?limit=500')
+      if (res.ok) {
+        const data = await res.json()
+        setActivities(data)
+      }
+    } catch (err) {
+      console.error('fetch activities error:', err)
+    } finally {
+      setLoadingActivities(false)
+    }
+  }
+
+  async function clearActivities() {
+    if (!confirm('Are you sure you want to clear all activity logs?')) return
+    try {
+      const res = await fetch('/api/activities', { method: 'DELETE' })
+      if (res.ok) {
+        setActivities([])
+        alert('Activity logs cleared successfully')
+      }
+    } catch (err) {
+      console.error('clear activities error:', err)
+      alert('Failed to clear activity logs')
+    }
+  }
+
   const stats = [
     { 
       label: 'Total Wards', 
@@ -173,6 +205,7 @@ export default function AdminPage() {
     { id: 'exemptions', name: 'Exemptions', icon: Percent },
     { id: 'wards', name: 'Ward Management', icon: MapPinned },
     { id: 'users', name: 'User Roles', icon: UserCog },
+    { id: 'activities', name: 'Activity Log', icon: Clock },
     { id: 'reports', name: 'Reports', icon: BarChart3 },
     { id: 'system', name: 'System Settings', icon: Sliders }
   ]
@@ -1566,6 +1599,125 @@ export default function AdminPage() {
                               {user.email} • {user.status}
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'activities' && (
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className={`text-2xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                          User Activity Log
+                        </h2>
+                        <p className={`text-sm mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          Track all user actions and transactions in the system
+                        </p>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={clearActivities}
+                        className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-md flex items-center gap-2"
+                      >
+                        <Trash2 size={16} />
+                        Clear Log
+                      </motion.button>
+                    </div>
+
+                    {loadingActivities ? (
+                      <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                      </div>
+                    ) : activities.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Clock size={64} className={`mx-auto mb-4 ${theme === 'light' ? 'text-gray-300' : 'text-gray-600'}`} />
+                        <h3 className={`text-xl font-semibold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                          No Activity Yet
+                        </h3>
+                        <p className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}>
+                          User activities will appear here
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {activities.map((activity: any) => (
+                          <motion.div
+                            key={activity.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`
+                              p-4 rounded-2xl border transition-all
+                              ${theme === 'light'
+                                ? 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-md'
+                                : 'bg-gray-800 border-gray-700 hover:border-indigo-600 hover:shadow-lg'
+                              }
+                            `}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-4 flex-1">
+                                <div className={`
+                                  p-3 rounded-xl
+                                  ${activity.action === 'CREATE' ? 'bg-green-100 text-green-600' :
+                                    activity.action === 'UPDATE' ? 'bg-blue-100 text-blue-600' :
+                                    activity.action === 'DELETE' ? 'bg-red-100 text-red-600' :
+                                    'bg-gray-100 text-gray-600'}
+                                `}>
+                                  {activity.entity_type === 'property' ? <Building size={20} /> :
+                                   activity.entity_type === 'assessment' ? <FileText size={20} /> :
+                                   activity.entity_type === 'payment' ? <DollarSign size={20} /> :
+                                   activity.entity_type === 'user' ? <Users size={20} /> :
+                                   activity.entity_type === 'tax_slab' ? <Calculator size={20} /> :
+                                   activity.entity_type === 'exemption' ? <Percent size={20} /> :
+                                   activity.entity_type === 'ward' ? <MapPinned size={20} /> :
+                                   <FileText size={20} />}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                      {activity.username}
+                                    </span>
+                                    <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                      •
+                                    </span>
+                                    <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                                      activity.action === 'CREATE' ? 'bg-green-100 text-green-700' :
+                                      activity.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' :
+                                      activity.action === 'DELETE' ? 'bg-red-100 text-red-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {activity.action}
+                                    </span>
+                                    <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                      •
+                                    </span>
+                                    <span className={`text-sm capitalize ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
+                                      {activity.entity_type.replace('_', ' ')}
+                                    </span>
+                                  </div>
+                                  <p className={`text-sm mb-1 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                    <span className="font-medium">{activity.entity_name}</span>
+                                  </p>
+                                  <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                    {activity.details}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Clock size={14} className={theme === 'light' ? 'text-gray-400' : 'text-gray-500'} />
+                                    <span className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                      {new Date(activity.timestamp).toLocaleString()}
+                                    </span>
+                                    {activity.status === 'success' ? (
+                                      <CheckCircle size={14} className="text-green-500 ml-2" />
+                                    ) : (
+                                      <AlertCircle size={14} className="text-red-500 ml-2" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
                         ))}
                       </div>
                     )}

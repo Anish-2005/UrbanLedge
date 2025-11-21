@@ -91,7 +91,14 @@ export default function PropertiesPage() {
       }
       
       // Fallback to mock service
+      const property = items.find(p => p.id === id)
       mockService.properties.delete(String(id))
+      
+      // Log activity
+      const { logActivity } = await import('@/lib/mockService')
+      logActivity('u1', 'admin', 'DELETE', 'property', String(id), property?.address || 'Unknown Property', 
+        `Deleted property from ${property?.ward || 'unknown ward'}`)
+      
       setItems(prev => prev.filter(item => item.id !== id))
       console.log('Property deleted successfully with mock service:', id)
     } catch (err) {
@@ -142,6 +149,11 @@ export default function PropertiesPage() {
       }
       
       mockService.properties.create(newProperty)
+      
+      // Log activity
+      const { logActivity } = await import('@/lib/mockService')
+      logActivity('u1', 'admin', 'CREATE', 'property', newProperty.id, newProperty.address, 
+        `Created ${newProperty.ptype} property with ${newProperty.builtArea} sq m built area`)
       
       const newItem = {
         id: newProperty.id,
@@ -218,6 +230,11 @@ export default function PropertiesPage() {
       }
       
       mockService.properties.update(updatedProperty)
+      
+      // Log activity
+      const { logActivity } = await import('@/lib/mockService')
+      logActivity('u1', 'admin', 'UPDATE', 'property', updatedProperty.id, updatedProperty.address, 
+        `Updated property details - ${updatedProperty.ptype}, ${updatedProperty.builtArea} sq m`)
       
       setItems(prev => prev.map(it => (it.id === merged.id ? {
         id: merged.id,

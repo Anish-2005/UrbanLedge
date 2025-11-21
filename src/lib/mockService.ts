@@ -77,6 +77,20 @@ export type UserRole = {
   description: string
 }
 
+export type Activity = {
+  id: string
+  user_id: string
+  username: string
+  action: string
+  entity_type: 'property' | 'assessment' | 'payment' | 'user' | 'tax_slab' | 'exemption' | 'ward'
+  entity_id: string
+  entity_name: string
+  details: string
+  timestamp: string
+  ip_address?: string
+  status: 'success' | 'failed'
+}
+
 const LS_PREFIX = 'optms_demo_v1_'
 
 // Safe storage wrapper: uses window.localStorage in browser, otherwise an in-memory fallback.
@@ -171,6 +185,12 @@ function ensureInitialized() {
     { id: 'r4', role_name: 'CASHIER', description: 'Payment Cashier' }
   ]
 
+  const activities: Activity[] = [
+    { id: 'act1', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'property', entity_id: 'p1', entity_name: '123 Main St', details: 'Created residential property', timestamp: new Date(Date.now() - 86400000).toISOString(), status: 'success' },
+    { id: 'act2', user_id: 'u2', username: 'john', action: 'CREATE', entity_type: 'payment', entity_id: 'pay1', entity_name: 'Payment for a1', details: 'Paid $600 via CARD', timestamp: new Date(Date.now() - 43200000).toISOString(), status: 'success' },
+    { id: 'act3', user_id: 'u1', username: 'admin', action: 'UPDATE', entity_type: 'assessment', entity_id: 'a2', entity_name: 'Assessment for p2', details: 'Updated assessment values', timestamp: new Date(Date.now() - 3600000).toISOString(), status: 'success' }
+  ]
+
   write('users', users)
   write('properties', properties)
   write('assessments', assessments)
@@ -179,6 +199,7 @@ function ensureInitialized() {
   write('exemptions', exemptions)
   write('wards', wards)
   write('roles', roles)
+  write('activities', activities)
   safeStorage.setItem(LS_PREFIX + 'initialized', '1')
   _initialized = true
 }
@@ -265,5 +286,36 @@ export const mockService = {
     create: (r: UserRole) => { ensureInitialized(); const arr = read<UserRole[]>('roles', []); arr.unshift(r); write('roles', arr); return r },
     update: (r: UserRole) => { ensureInitialized(); const arr = read<UserRole[]>('roles', []); const idx = arr.findIndex(x => x.id === r.id); if (idx >= 0) arr[idx] = r; write('roles', arr); return r },
     delete: (id: string) => { ensureInitialized(); const arr = read<UserRole[]>('roles', []); write('roles', arr.filter(x => x.id !== id)) }
+  },
+
+  activities: {
+    list: (): Activity[] => { ensureInitialized(); return read<Activity[]>('activities', []).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) },
+    create: (a: Activity) => { 
+      ensureInitialized(); 
+      const arr = read<Activity[]>('activities', []); 
+      arr.unshift(a); 
+      // Keep only last 1000 activities
+      if (arr.length > 1000) arr.splice(1000);
+      write('activities', arr); 
+      return a 
+    },
+    clear: () => { ensureInitialized(); write('activities', []) }
   }
+}
+
+// Helper function to log activities
+export function logActivity(userId: string, username: string, action: string, entityType: Activity['entity_type'], entityId: string, entityName: string, details: string) {
+  const activity: Activity = {
+    id: 'act' + Date.now(),
+    user_id: userId,
+    username,
+    action,
+    entity_type: entityType,
+    entity_id: entityId,
+    entity_name: entityName,
+    details,
+    timestamp: new Date().toISOString(),
+    status: 'success'
+  }
+  mockService.activities.create(activity)
 }

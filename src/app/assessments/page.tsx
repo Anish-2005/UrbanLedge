@@ -119,6 +119,12 @@ export default function AssessmentsPage() {
       // Save to mock service
       mockService.assessments.create(newA)
       
+      // Log activity
+      const { logActivity } = await import('@/lib/mockService')
+      logActivity('u1', 'admin', 'CREATE', 'assessment', newA.id, 
+        `Assessment for ${property?.address || 'Unknown'}`, 
+        `Created assessment for FY ${newA.financialYear} with base tax $${newA.baseTax}`)
+      
       // Add to state with property address
       const newAssessment = { 
         id: newA.id, 
@@ -148,9 +154,18 @@ export default function AssessmentsPage() {
       const idx = assessments.findIndex(a => a.id === String(id))
       if (idx >= 0) {
         const a = assessments[idx]
+        const oldDue = a.totalDue
         a.totalDue = 0
         a.status = 'PAID'
         mockService.assessments.update(a)
+        
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        const assessment = items.find(item => item.id === a.id)
+        logActivity('u1', 'admin', 'UPDATE', 'assessment', a.id, 
+          `Assessment for ${assessment?.propertyAddress || 'Unknown'}`, 
+          `Marked assessment as PAID - $${oldDue} paid`)
+        
         setItems(prev => prev.map(item => item.id === a.id ? { ...item, status: a.status, totalDue: Number(a.totalDue) } : item))
       }
     } catch (e) { 

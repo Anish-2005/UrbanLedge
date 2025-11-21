@@ -65,6 +65,14 @@ export default function PaymentsPage() {
         txRef: payment.txRef 
       }
       mockService.payments.create(payload)
+      
+      // Log activity
+      const { logActivity } = await import('@/lib/mockService')
+      const assessment = assessments.find(a => String(a.id) === String(payment.assessId))
+      logActivity('u2', 'john', 'CREATE', 'payment', payload.id, 
+        `Payment for ${assessment?.propertyAddress || 'Unknown Property'}`, 
+        `Paid $${payload.paidAmount} via ${payload.method}`)
+      
       await fetchAll()
     } catch (e) { 
       console.error(e) 
