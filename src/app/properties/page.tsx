@@ -95,9 +95,18 @@ export default function PropertiesPage() {
       mockService.properties.delete(String(id))
       
       // Log activity
-      const { logActivity } = await import('@/lib/mockService')
-      logActivity('u1', 'admin', 'DELETE', 'property', String(id), property?.address || 'Unknown Property', 
-        `Deleted property from ${property?.ward || 'unknown ward'}`)
+      mockService.activities.create({
+        id: 'act' + Date.now(),
+        user_id: 'u1',
+        username: 'admin',
+        action: 'DELETE',
+        entity_type: 'property',
+        entity_id: String(id),
+        entity_name: property?.address || 'Unknown Property',
+        details: `Deleted property from ${property?.ward || 'unknown ward'}`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
       
       setItems(prev => prev.filter(item => item.id !== id))
       console.log('Property deleted successfully with mock service:', id)
@@ -151,9 +160,18 @@ export default function PropertiesPage() {
       mockService.properties.create(newProperty)
       
       // Log activity
-      const { logActivity } = await import('@/lib/mockService')
-      logActivity('u1', 'admin', 'CREATE', 'property', newProperty.id, newProperty.address, 
-        `Created ${newProperty.ptype} property with ${newProperty.builtArea} sq m built area`)
+      mockService.activities.create({
+        id: 'act' + Date.now(),
+        user_id: 'u1',
+        username: 'admin',
+        action: 'CREATE',
+        entity_type: 'property',
+        entity_id: newProperty.id,
+        entity_name: newProperty.address,
+        details: `Created ${newProperty.ptype} property with ${newProperty.builtArea} sq m built area in ${newProperty.ward}`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
       
       const newItem = {
         id: newProperty.id,
@@ -232,9 +250,18 @@ export default function PropertiesPage() {
       mockService.properties.update(updatedProperty)
       
       // Log activity
-      const { logActivity } = await import('@/lib/mockService')
-      logActivity('u1', 'admin', 'UPDATE', 'property', updatedProperty.id, updatedProperty.address, 
-        `Updated property details - ${updatedProperty.ptype}, ${updatedProperty.builtArea} sq m`)
+      mockService.activities.create({
+        id: 'act' + Date.now(),
+        user_id: 'u1',
+        username: 'admin',
+        action: 'UPDATE',
+        entity_type: 'property',
+        entity_id: updatedProperty.id,
+        entity_name: updatedProperty.address,
+        details: `Updated property details - ${updatedProperty.ptype}, ${updatedProperty.builtArea} sq m`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
       
       setItems(prev => prev.map(it => (it.id === merged.id ? {
         id: merged.id,

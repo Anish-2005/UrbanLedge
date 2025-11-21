@@ -67,11 +67,19 @@ export default function PaymentsPage() {
       mockService.payments.create(payload)
       
       // Log activity
-      const { logActivity } = await import('@/lib/mockService')
       const assessment = assessments.find(a => String(a.id) === String(payment.assessId))
-      logActivity('u2', 'john', 'CREATE', 'payment', payload.id, 
-        `Payment for ${assessment?.propertyAddress || 'Unknown Property'}`, 
-        `Paid $${payload.paidAmount} via ${payload.method}`)
+      mockService.activities.create({
+        id: 'act' + Date.now(),
+        user_id: 'u2',
+        username: 'john',
+        action: 'CREATE',
+        entity_type: 'payment',
+        entity_id: payload.id,
+        entity_name: `Payment for ${assessment?.propertyAddress || 'Unknown Property'}`,
+        details: `Paid $${payload.paidAmount} via ${payload.method}`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
       
       await fetchAll()
     } catch (e) { 

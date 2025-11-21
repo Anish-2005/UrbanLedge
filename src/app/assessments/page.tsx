@@ -120,10 +120,18 @@ export default function AssessmentsPage() {
       mockService.assessments.create(newA)
       
       // Log activity
-      const { logActivity } = await import('@/lib/mockService')
-      logActivity('u1', 'admin', 'CREATE', 'assessment', newA.id, 
-        `Assessment for ${property?.address || 'Unknown'}`, 
-        `Created assessment for FY ${newA.financialYear} with base tax $${newA.baseTax}`)
+      mockService.activities.create({
+        id: 'act' + Date.now(),
+        user_id: 'u1',
+        username: 'admin',
+        action: 'CREATE',
+        entity_type: 'assessment',
+        entity_id: newA.id,
+        entity_name: `Assessment for ${property?.address || 'Unknown'}`,
+        details: `Created assessment for FY ${newA.financialYear} with base tax $${newA.baseTax}`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
       
       // Add to state with property address
       const newAssessment = { 
@@ -160,11 +168,19 @@ export default function AssessmentsPage() {
         mockService.assessments.update(a)
         
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
         const assessment = items.find(item => item.id === a.id)
-        logActivity('u1', 'admin', 'UPDATE', 'assessment', a.id, 
-          `Assessment for ${assessment?.propertyAddress || 'Unknown'}`, 
-          `Marked assessment as PAID - $${oldDue} paid`)
+        mockService.activities.create({
+          id: 'act' + Date.now(),
+          user_id: 'u1',
+          username: 'admin',
+          action: 'UPDATE',
+          entity_type: 'assessment',
+          entity_id: a.id,
+          entity_name: `Assessment for ${assessment?.propertyAddress || 'Unknown'}`,
+          details: `Marked assessment as PAID - $${oldDue} paid`,
+          timestamp: new Date().toISOString(),
+          status: 'success'
+        })
         
         setItems(prev => prev.map(item => item.id === a.id ? { ...item, status: a.status, totalDue: Number(a.totalDue) } : item))
       }
