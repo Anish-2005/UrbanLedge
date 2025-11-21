@@ -142,10 +142,28 @@ export default function AdminPage() {
       const res = await fetch('/api/activities?limit=500')
       if (res.ok) {
         const data = await res.json()
-        setActivities(data)
+        console.log('Activities fetched:', data.length, 'items')
+        setActivities(data || [])
+      } else {
+        console.error('Failed to fetch activities, status:', res.status)
+        // Fallback to direct mockService call
+        const { mockService } = await import('@/lib/mockService')
+        const data = mockService.activities.list()
+        console.log('Activities from mockService:', data.length, 'items')
+        setActivities(data || [])
       }
     } catch (err) {
       console.error('fetch activities error:', err)
+      // Fallback to direct mockService call
+      try {
+        const { mockService } = await import('@/lib/mockService')
+        const data = mockService.activities.list()
+        console.log('Activities from mockService (error fallback):', data.length, 'items')
+        setActivities(data || [])
+      } catch (fallbackErr) {
+        console.error('fallback error:', fallbackErr)
+        setActivities([])
+      }
     } finally {
       setLoadingActivities(false)
     }
