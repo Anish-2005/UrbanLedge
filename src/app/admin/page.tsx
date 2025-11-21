@@ -10,7 +10,7 @@ import {
   CreditCardIcon, Banknote, QrCode, Receipt, Shield, Zap,
   Sliders, Percent, UserCog, BarChart3,
   ShieldCheck, Users as UsersIcon, PieChart,
-  Building2, Landmark, FileBarChart
+  Building2, Landmark, FileBarChart, Activity
 } from 'lucide-react'
 import Header from '@/components/Header'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -43,6 +43,10 @@ export default function AdminPage() {
   const [editingExemption, setEditingExemption] = useState<any | null>(null)
   const [editingWard, setEditingWard] = useState<any | null>(null)
   const [editingUser, setEditingUser] = useState<any | null>(null)
+
+  // Activity filter states
+  const [activityFilter, setActivityFilter] = useState<string>('all')
+  const [activityActionFilter, setActivityActionFilter] = useState<string>('all')
 
   useEffect(() => {
     if (activeTab === 'tax-slabs') fetchTaxSlabs()
@@ -1627,6 +1631,134 @@ export default function AdminPage() {
                       </motion.button>
                     </div>
 
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className={`p-4 rounded-xl ${theme === 'light' ? 'bg-green-50 border border-green-200' : 'bg-green-900/20 border border-green-800'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Plus className="text-green-600" size={24} />
+                          <div>
+                            <p className={`text-2xl font-bold ${theme === 'light' ? 'text-green-700' : 'text-green-400'}`}>
+                              {activities.filter(a => a.action === 'CREATE').length}
+                            </p>
+                            <p className={`text-sm ${theme === 'light' ? 'text-green-600' : 'text-green-500'}`}>Created</p>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className={`p-4 rounded-xl ${theme === 'light' ? 'bg-blue-50 border border-blue-200' : 'bg-blue-900/20 border border-blue-800'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Edit2 className="text-blue-600" size={24} />
+                          <div>
+                            <p className={`text-2xl font-bold ${theme === 'light' ? 'text-blue-700' : 'text-blue-400'}`}>
+                              {activities.filter(a => a.action === 'UPDATE').length}
+                            </p>
+                            <p className={`text-sm ${theme === 'light' ? 'text-blue-600' : 'text-blue-500'}`}>Updated</p>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className={`p-4 rounded-xl ${theme === 'light' ? 'bg-red-50 border border-red-200' : 'bg-red-900/20 border border-red-800'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Trash2 className="text-red-600" size={24} />
+                          <div>
+                            <p className={`text-2xl font-bold ${theme === 'light' ? 'text-red-700' : 'text-red-400'}`}>
+                              {activities.filter(a => a.action === 'DELETE').length}
+                            </p>
+                            <p className={`text-sm ${theme === 'light' ? 'text-red-600' : 'text-red-500'}`}>Deleted</p>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className={`p-4 rounded-xl ${theme === 'light' ? 'bg-indigo-50 border border-indigo-200' : 'bg-indigo-900/20 border border-indigo-800'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Activity className="text-indigo-600" size={24} />
+                          <div>
+                            <p className={`text-2xl font-bold ${theme === 'light' ? 'text-indigo-700' : 'text-indigo-400'}`}>
+                              {activities.length}
+                            </p>
+                            <p className={`text-sm ${theme === 'light' ? 'text-indigo-600' : 'text-indigo-500'}`}>Total</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="mb-6 flex gap-4 flex-wrap">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                          Filter by Type
+                        </label>
+                        <select
+                          value={activityFilter}
+                          onChange={(e) => setActivityFilter(e.target.value)}
+                          className={`
+                            rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200
+                            ${theme === 'light'
+                              ? 'border border-gray-300 bg-white text-gray-900'
+                              : 'border border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                        >
+                          <option value="all">All Types</option>
+                          <option value="property">Properties</option>
+                          <option value="assessment">Assessments</option>
+                          <option value="payment">Payments</option>
+                          <option value="tax_slab">Tax Slabs</option>
+                          <option value="exemption">Exemptions</option>
+                          <option value="ward">Wards</option>
+                          <option value="user">Users</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                          Filter by Action
+                        </label>
+                        <select
+                          value={activityActionFilter}
+                          onChange={(e) => setActivityActionFilter(e.target.value)}
+                          className={`
+                            rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200
+                            ${theme === 'light'
+                              ? 'border border-gray-300 bg-white text-gray-900'
+                              : 'border border-gray-600 bg-gray-700 text-white'
+                            }
+                          `}
+                        >
+                          <option value="all">All Actions</option>
+                          <option value="CREATE">Create</option>
+                          <option value="UPDATE">Update</option>
+                          <option value="DELETE">Delete</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-end">
+                        <div className={`
+                          px-4 py-2 rounded-xl
+                          ${theme === 'light' ? 'bg-indigo-50 text-indigo-700' : 'bg-indigo-900/30 text-indigo-300'}
+                        `}>
+                          <span className="text-sm font-medium">
+                            {activities.filter(a => 
+                              (activityFilter === 'all' || a.entity_type === activityFilter) &&
+                              (activityActionFilter === 'all' || a.action === activityActionFilter)
+                            ).length} activities
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     {loadingActivities ? (
                       <div className="text-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
@@ -1643,7 +1775,12 @@ export default function AdminPage() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {activities.map((activity: any) => (
+                        {activities
+                          .filter(a => 
+                            (activityFilter === 'all' || a.entity_type === activityFilter) &&
+                            (activityActionFilter === 'all' || a.action === activityActionFilter)
+                          )
+                          .map((activity: any) => (
                           <motion.div
                             key={activity.id}
                             initial={{ opacity: 0, x: -20 }}

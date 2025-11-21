@@ -186,9 +186,34 @@ function ensureInitialized() {
   ]
 
   const activities: Activity[] = [
-    { id: 'act1', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'property', entity_id: 'p1', entity_name: '123 Main St', details: 'Created residential property', timestamp: new Date(Date.now() - 86400000).toISOString(), status: 'success' },
-    { id: 'act2', user_id: 'u2', username: 'john', action: 'CREATE', entity_type: 'payment', entity_id: 'pay1', entity_name: 'Payment for a1', details: 'Paid $600 via CARD', timestamp: new Date(Date.now() - 43200000).toISOString(), status: 'success' },
-    { id: 'act3', user_id: 'u1', username: 'admin', action: 'UPDATE', entity_type: 'assessment', entity_id: 'a2', entity_name: 'Assessment for p2', details: 'Updated assessment values', timestamp: new Date(Date.now() - 3600000).toISOString(), status: 'success' }
+    // Property activities
+    { id: 'act1', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'property', entity_id: 'p1', entity_name: '123 Main St, Apt 4', details: 'Created Residential property with 120 sq m built area in Ward 1', timestamp: new Date(Date.now() - 172800000).toISOString(), status: 'success' },
+    { id: 'act2', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'property', entity_id: 'p2', entity_name: '45 Market Rd', details: 'Created Commercial property with 350 sq m built area in Ward 2', timestamp: new Date(Date.now() - 158400000).toISOString(), status: 'success' },
+    
+    // Assessment activities
+    { id: 'act3', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'assessment', entity_id: 'a1', entity_name: 'Assessment for 123 Main St, Apt 4', details: 'Created assessment for FY 2025-2026 with base tax $1200', timestamp: new Date(Date.now() - 144000000).toISOString(), status: 'success' },
+    { id: 'act4', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'assessment', entity_id: 'a2', entity_name: 'Assessment for 45 Market Rd', details: 'Created assessment for FY 2025-2026 with base tax $5250', timestamp: new Date(Date.now() - 129600000).toISOString(), status: 'success' },
+    
+    // Payment activities
+    { id: 'act5', user_id: 'u2', username: 'john', action: 'CREATE', entity_type: 'payment', entity_id: 'pay1', entity_name: 'Payment for 123 Main St, Apt 4', details: 'Paid $600 via CARD', timestamp: new Date(Date.now() - 86400000).toISOString(), status: 'success' },
+    
+    // Tax slab activities
+    { id: 'act6', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'tax_slab', entity_id: 'ts1', entity_name: 'Residential Tax Slab', details: 'Created tax slab: 0-1000 sq m @ $10/sq m', timestamp: new Date(Date.now() - 259200000).toISOString(), status: 'success' },
+    { id: 'act7', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'tax_slab', entity_id: 'ts2', entity_name: 'Commercial Tax Slab', details: 'Created tax slab: 0-2000 sq m @ $25/sq m', timestamp: new Date(Date.now() - 259100000).toISOString(), status: 'success' },
+    
+    // Exemption activities
+    { id: 'act8', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'exemption', entity_id: 'ex1', entity_name: 'Senior Citizen', details: 'Created exemption: 15% discount for property owners aged 60+', timestamp: new Date(Date.now() - 345600000).toISOString(), status: 'success' },
+    { id: 'act9', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'exemption', entity_id: 'ex2', entity_name: 'Disabled', details: 'Created exemption: 25% discount for physically challenged owners', timestamp: new Date(Date.now() - 345500000).toISOString(), status: 'success' },
+    
+    // Ward activities
+    { id: 'act10', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'ward', entity_id: 'w1', entity_name: 'Ward 1', details: 'Created ward in North zone with 5.2 sq km area', timestamp: new Date(Date.now() - 432000000).toISOString(), status: 'success' },
+    { id: 'act11', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'ward', entity_id: 'w2', entity_name: 'Ward 2', details: 'Created ward in South zone with 6.8 sq km area', timestamp: new Date(Date.now() - 431900000).toISOString(), status: 'success' },
+    
+    // User activities
+    { id: 'act12', user_id: 'u1', username: 'admin', action: 'CREATE', entity_type: 'user', entity_id: 'u2', entity_name: 'john', details: 'Created user account with OWNER role', timestamp: new Date(Date.now() - 518400000).toISOString(), status: 'success' },
+    
+    // Recent assessment update
+    { id: 'act13', user_id: 'u1', username: 'admin', action: 'UPDATE', entity_type: 'assessment', entity_id: 'a1', entity_name: 'Assessment for 123 Main St, Apt 4', details: 'Marked assessment as PAID - $1200 paid', timestamp: new Date(Date.now() - 43200000).toISOString(), status: 'success' }
   ]
 
   write('users', users)
