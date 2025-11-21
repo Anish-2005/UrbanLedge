@@ -1005,8 +1005,18 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        const action = slab.slab_id ? 'UPDATE' : 'CREATE'
+        const slabName = `${slab.property_type_name} Tax Slab`
+        logActivity('u1', 'admin', action, 'tax_slab', 
+          slab.slab_id || slab.id || 'new', 
+          slabName, 
+          `${action === 'CREATE' ? 'Created' : 'Updated'} tax slab: ${slab.min_area}-${slab.max_area || '∞'} sq m @ $${slab.base_rate_per_sq_m}/sq m`)
+        
         setEditingTaxSlab(null)
         fetchTaxSlabs()
+        if (activeTab === 'activities') fetchActivities() // Refresh activity log if viewing
       } else {
         alert('Failed to save tax slab')
       }
@@ -1033,6 +1043,8 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this tax slab?')) return
     
     try {
+      const slab = taxSlabs.find(s => s.slab_id === id || s.id === id)
+      
       const response = await fetch(`/api/tax-slabs`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -1040,7 +1052,15 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        logActivity('u1', 'admin', 'DELETE', 'tax_slab', 
+          String(id), 
+          slab?.property_type_name || 'Tax Slab', 
+          `Deleted tax slab for ${slab?.property_type_name || 'property type'}`)
+        
         fetchTaxSlabs()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to delete tax slab')
       }
@@ -1076,8 +1096,18 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        const action = exemption.exemption_id ? 'UPDATE' : 'CREATE'
+        const name = exemption.exemption_name || exemption.category
+        logActivity('u1', 'admin', action, 'exemption', 
+          exemption.exemption_id || exemption.id || 'new', 
+          name, 
+          `${action === 'CREATE' ? 'Created' : 'Updated'} exemption: ${exemption.exemption_percentage || exemption.discount_pct}% discount`)
+        
         setEditingExemption(null)
         fetchExemptions()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to save exemption')
       }
@@ -1104,6 +1134,8 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this exemption?')) return
     
     try {
+      const exemption = exemptions.find(e => e.exemption_id === id || e.id === id)
+      
       const response = await fetch(`/api/exemptions`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -1111,7 +1143,15 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        logActivity('u1', 'admin', 'DELETE', 'exemption', 
+          String(id), 
+          exemption?.exemption_name || exemption?.category || 'Exemption', 
+          `Deleted exemption: ${exemption?.exemption_name || exemption?.category || 'Unknown'}`)
+        
         fetchExemptions()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to delete exemption')
       }
@@ -1145,8 +1185,18 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        const action = ward.ward_id ? 'UPDATE' : 'CREATE'
+        const name = ward.name || ward.ward_name
+        logActivity('u1', 'admin', action, 'ward', 
+          ward.ward_id || ward.id || 'new', 
+          name, 
+          `${action === 'CREATE' ? 'Created' : 'Updated'} ward: ${ward.area_description || name}`)
+        
         setEditingWard(null)
         fetchWards()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to save ward')
       }
@@ -1160,6 +1210,8 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this ward?')) return
     
     try {
+      const ward = wards.find(w => w.ward_id === id || w.id === id)
+      
       const response = await fetch(`/api/wards`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -1167,7 +1219,15 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        logActivity('u1', 'admin', 'DELETE', 'ward', 
+          String(id), 
+          ward?.name || ward?.ward_name || 'Ward', 
+          `Deleted ward: ${ward?.name || ward?.ward_name || 'Unknown'}`)
+        
         fetchWards()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to delete ward')
       }
@@ -1208,8 +1268,17 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        const action = user.user_id ? 'UPDATE' : 'CREATE'
+        logActivity('u1', 'admin', action, 'user', 
+          user.user_id || user.id || 'new', 
+          user.username, 
+          `${action === 'CREATE' ? 'Created' : 'Updated'} user account with ${Array.isArray(user.roles) ? user.roles.join(', ') : user.roles} role(s)`)
+        
         setEditingUser(null)
         fetchUsers()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to save user')
       }
@@ -1223,6 +1292,8 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this user?')) return
     
     try {
+      const user = users.find(u => u.user_id === id || u.id === id)
+      
       const response = await fetch(`/api/users`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -1230,7 +1301,15 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
+        // Log activity
+        const { logActivity } = await import('@/lib/mockService')
+        logActivity('u1', 'admin', 'DELETE', 'user', 
+          String(id), 
+          user?.username || 'User', 
+          `Deleted user account: ${user?.username || 'Unknown'} (${user?.full_name || user?.fullName || ''})`)
+        
         fetchUsers()
+        if (activeTab === 'activities') fetchActivities()
       } else {
         alert('Failed to delete user')
       }
