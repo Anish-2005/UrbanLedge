@@ -23,31 +23,42 @@ export default function AssessmentsPage() {
     // load properties first so we can map property addresses when loading assessments
     async function init() {
       await fetchProperties()
-      await fetchList()
     }
     init()
   }, [])
+
+  // Reload assessments when properties change
+  useEffect(() => {
+    if (properties.length > 0) {
+      fetchList()
+    }
+  }, [properties])
 
   async function fetchList() {
     try {
       setLoading(true)
       const rows = mockService.assessments.list()
-      const mapped = rows.map((r: any) => ({
-        id: r.id,
-        financialYear: r.financialYear,
-        assessedValue: Number(r.assessedValue),
-        baseTax: Number(r.baseTax),
-        exemptionPct: Number(r.exemptionPct || 0),
-        penalty: Number(r.penalty || 0),
-        totalDue: Number(r.totalDue),
-        status: r.status,
-        propertyId: r.propertyId,
-        propertyAddress: properties.find((p: any) => String(p.id) === String(r.propertyId))?.address || '',
-        createdAt: new Date().toISOString()
-      }))
+      // Map assessments and add property addresses
+      const mapped = rows.map((r: any) => {
+        const property = properties.find((p: any) => String(p.id) === String(r.propertyId))
+        return {
+          id: r.id,
+          financialYear: r.financialYear,
+          assessedValue: Number(r.assessedValue),
+          baseTax: Number(r.baseTax),
+          exemptionPct: Number(r.exemptionPct || 0),
+          penalty: Number(r.penalty || 0),
+          totalDue: Number(r.totalDue),
+          status: r.status,
+          propertyId: r.propertyId,
+          propertyAddress: property?.address || 'Unknown Property',
+          createdAt: new Date().toISOString()
+        }
+      })
       setItems(mapped)
       setLoading(false)
     } catch (e) {
+      console.error('Failed to fetch assessments:', e)
       setItems([])
       setLoading(false)
     }
@@ -55,19 +66,44 @@ export default function AssessmentsPage() {
 
   async function fetchProperties() {
     try {
+      // First try mock service
+      const mockProperties = mockService.properties.list()
+      if (mockProperties && mockProperties.length > 0) {
+        const mapped = mockProperties.map((r: any) => ({
+          id: String(r.id || r.property_id || r.propertyId),
+          address: r.address || r.addr || r.property_address || '',
+          ward: r.ward || r.ward_name || r.ward_id || ''
+        }))
+        setProperties(mapped)
+        return
+      }
+
+      // Fallback to API
       const res = await fetch('/api/properties')
       if (!res.ok) throw new Error('Failed to fetch properties')
       const rows = await res.json()
-      setProperties((rows ?? []).map((r: any) => ({
+      const mapped = (rows ?? []).map((r: any) => ({
         id: String(r.property_id ?? r.id ?? r.propertyId),
         address: r.address || r.addr || r.property_address || '',
         ward: r.ward || r.ward_name || r.ward_id || ''
-      })))
-    } catch (e) { /* ignore */ }
+      }))
+      setProperties(mapped)
+    } catch (e) {
+      console.error('Failed to fetch properties:', e)
+      // Set some default properties if both fail
+      setProperties([
+        { id: '1', address: '123 Main Street', ward: 'Ward 1' },
+        { id: '2', address: '456 Oak Avenue', ward: 'Ward 2' },
+        { id: '3', address: '789 Pine Road', ward: 'Ward 3' }
+      ])
+    }
   }
 
   async function handleSave(assessment: any) {
     try {
+      // Find the property to get its address
+      const property = properties.find(p => p.id === assessment.propertyId)
+      
       const newA = { 
         id: 'a' + Date.now(), 
         propertyId: String(assessment.propertyId), 
@@ -79,22 +115,30 @@ export default function AssessmentsPage() {
         totalDue: Number(assessment.totalDue), 
         status: 'DUE' as const 
       }
+      
+      // Save to mock service
       mockService.assessments.create(newA)
-      setItems(prev => [{ 
+      
+      // Add to state with property address
+      const newAssessment = { 
         id: newA.id, 
         financialYear: newA.financialYear, 
-        assessedValue: Number(newA.assessedValue), 
-        baseTax: Number(newA.baseTax), 
-        exemptionPct: Number(newA.exemptionPct || 0), 
-        penalty: Number(newA.penalty || 0), 
-        totalDue: Number(newA.totalDue), 
+        assessedValue: newA.assessedValue, 
+        baseTax: newA.baseTax, 
+        exemptionPct: newA.exemptionPct, 
+        penalty: newA.penalty, 
+        totalDue: newA.totalDue, 
         status: newA.status, 
         propertyId: newA.propertyId, 
-        propertyAddress: properties.find(p => p.id === newA.propertyId)?.address || '', 
+        propertyAddress: property?.address || 'Unknown Address', 
         createdAt: new Date().toISOString() 
-      }, ...prev])
+      }
+      
+      setItems(prev => [newAssessment, ...prev])
+      
+      console.log('Assessment created successfully:', newAssessment)
     } catch (e) { 
-      console.error(e) 
+      console.error('Failed to create assessment:', e) 
     }
   }
 
