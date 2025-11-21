@@ -79,11 +79,28 @@ export default function PropertiesPage() {
   async function handleDelete(id: number | string) {
     if (!confirm('Are you sure you want to delete this property?')) return
     try {
+      const property = items.find(p => p.id === id)
+      
       // Try API first
       try {
         const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
         if (res.ok) {
+          // Log activity for API success
+          mockService.activities.create({
+            id: 'act' + Date.now(),
+            user_id: 'u1',
+            username: 'admin',
+            action: 'DELETE',
+            entity_type: 'property',
+            entity_id: String(id),
+            entity_name: property?.address || 'Unknown Property',
+            details: `Deleted property from ${property?.ward || 'unknown ward'}`,
+            timestamp: new Date().toISOString(),
+            status: 'success'
+          })
+          
           setItems(prev => prev.filter(item => item.id !== id))
+          console.log('Property deleted successfully via API:', id)
           return
         }
       } catch (apiError) {
@@ -91,7 +108,6 @@ export default function PropertiesPage() {
       }
       
       // Fallback to mock service
-      const property = items.find(p => p.id === id)
       mockService.properties.delete(String(id))
       
       // Log activity
@@ -138,7 +154,23 @@ export default function PropertiesPage() {
             status: 'Active',
             lastAssessment: new Date().toISOString()
           }
+          
+          // Log activity for API success
+          mockService.activities.create({
+            id: 'act' + Date.now(),
+            user_id: 'u1',
+            username: 'admin',
+            action: 'CREATE',
+            entity_type: 'property',
+            entity_id: newItem.id,
+            entity_name: newItem.address,
+            details: `Created ${newItem.ptype} property with ${newItem.builtArea} sq m built area in ${newItem.ward}`,
+            timestamp: new Date().toISOString(),
+            status: 'success'
+          })
+          
           setItems(prev => [newItem, ...prev])
+          console.log('Property created successfully via API:', newItem)
           return
         }
       } catch (apiError) {
@@ -216,6 +248,21 @@ export default function PropertiesPage() {
         const res = await fetch('/api/properties', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         if (res.ok) {
           const updated = await res.json()
+          
+          // Log activity for API success
+          mockService.activities.create({
+            id: 'act' + Date.now(),
+            user_id: 'u1',
+            username: 'admin',
+            action: 'UPDATE',
+            entity_type: 'property',
+            entity_id: updated.property_id ?? updated.id,
+            entity_name: updated.address,
+            details: `Updated property details - ${updated.ptype}, ${updated.built_area ?? updated.builtArea} sq m`,
+            timestamp: new Date().toISOString(),
+            status: 'success'
+          })
+          
           setItems(prev => prev.map(it => (it.id === (updated.property_id ?? updated.id) ? {
             id: updated.property_id ?? updated.id,
             address: updated.address,
@@ -229,6 +276,7 @@ export default function PropertiesPage() {
             lastAssessment: it.lastAssessment
           } : it)))
           setEditing(null)
+          console.log('Property updated successfully via API:', updated)
           return
         }
       } catch (apiError) {
