@@ -48,6 +48,27 @@ export default function AdminPage() {
   const [activityFilter, setActivityFilter] = useState<string>('all')
   const [activityActionFilter, setActivityActionFilter] = useState<string>('all')
 
+  // DB status
+  const [dbStatus, setDbStatus] = useState<{ enabled: boolean; connected: boolean; error?: string } | null>(null)
+
+  // Fetch DB status once on mount so UI can show helpful banner if DB is down
+  useEffect(() => {
+    async function getStatus() {
+      try {
+        const res = await fetch('/api/db/status')
+        if (res.ok) {
+          const j = await res.json()
+          setDbStatus(j)
+        } else {
+          setDbStatus({ enabled: false, connected: false, error: 'Failed to fetch' })
+        }
+      } catch (err: any) {
+        setDbStatus({ enabled: false, connected: false, error: String(err?.message ?? err) })
+      }
+    }
+    getStatus()
+  }, [])
+
   useEffect(() => {
     if (activeTab === 'tax-slabs') fetchTaxSlabs()
     else if (activeTab === 'exemptions') fetchExemptions()
