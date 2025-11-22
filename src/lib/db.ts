@@ -15,6 +15,11 @@ function getPool() {
   return pool
 }
 
+// Returns true when a real database is configured via env
+export function isDbEnabled() {
+  return Boolean(process.env.DATABASE_URL)
+}
+
 export async function query(text: string, params?: any[]) {
   const p = getPool()
   const client = await p.connect()
@@ -28,6 +33,12 @@ export async function query(text: string, params?: any[]) {
 
 // Optional: create tables if not exist (full schema)
 export async function ensureTables() {
+  // If no DATABASE_URL provided, skip creating tables so the app can run with mockService
+  if (!isDbEnabled()) {
+    // No DB configured - skip schema creation
+    return
+  }
+
   await query(`
     CREATE TABLE IF NOT EXISTS role (
       role_id SERIAL PRIMARY KEY,
