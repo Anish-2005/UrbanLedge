@@ -1390,6 +1390,15 @@ export default function AdminPage() {
               transition={{ delay: 0.2 }}
               className="space-y-8"
             >
+              {/* DB status banner */}
+              {dbStatus && (!dbStatus.enabled || !dbStatus.connected) && (
+                <div className="p-3 rounded-md mb-4 border border-yellow-400 bg-yellow-50 text-yellow-900">
+                  <strong>Database unavailable:</strong>
+                  {!dbStatus.enabled && <span> No DATABASE_URL configured — the app is running with local mock data.</span>}
+                  {dbStatus.enabled && !dbStatus.connected && <span> The configured database is not reachable (Render may show "Free database expired"). Please upgrade the database or update the connection string. Check <em>Logs</em> or the <em>Render</em> dashboard for details.</span>}
+                  {dbStatus.error && <div className="mt-1 text-sm text-yellow-800">{dbStatus.error}</div>}
+                </div>
+              )}
               {/* Header Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
