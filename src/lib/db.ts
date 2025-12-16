@@ -16,7 +16,7 @@ function getPool() {
 }
 
 // Returns true when a real database is configured via env
-export function isDbEnabled() {
+export async function isDbEnabled() {
   return Boolean(process.env.DATABASE_URL)
 }
 
@@ -34,7 +34,7 @@ export async function query(text: string, params?: any[]) {
 // Optional: create tables if not exist (full schema)
 export async function ensureTables() {
   // If no DATABASE_URL provided, skip creating tables so the app can run with mockService
-  if (!isDbEnabled()) {
+  if (!(await isDbEnabled())) {
     // No DB configured - skip schema creation
     return
   }

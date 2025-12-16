@@ -3,7 +3,7 @@ import { isDbEnabled, query } from '@/lib/db'
 
 export async function GET() {
   try {
-    const enabled = isDbEnabled()
+    const enabled = await isDbEnabled()
     if (!enabled) {
       return NextResponse.json({ enabled: false, connected: false })
     }
