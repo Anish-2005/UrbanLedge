@@ -12,7 +12,7 @@ if (!conn) {
 (async function(){
   const pool = new Pool({ 
     connectionString: conn,
-    ssl: { rejectUnauthorized: false } // Required for Supabase SSL connections
+    ssl: { rejectUnauthorized: false } // Required for Neon SSL connections
   })
   const client = await pool.connect()
   try {

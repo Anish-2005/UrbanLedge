@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { mockService } from '@/lib/mockService'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function PropertiesPage() {
@@ -25,42 +24,21 @@ export default function PropertiesPage() {
       setLoading(true)
       setError(null)
       
-      // Try API first
-      try {
-        const res = await fetch('/api/properties')
-        if (res.ok) {
-          const rows = await res.json()
-          const mapped = (rows ?? []).map((r: any) => ({
-            id: r.property_id ?? r.id,
-            address: r.address,
-            ward: r.ward,
-            ptype: r.ptype,
-            usage: r.usage,
-            landArea: Number(r.land_area ?? r.landArea ?? 0),
-            builtArea: Number(r.built_area ?? r.builtArea ?? 0),
-            owner: r.owner_id ?? r.ownerId ?? null,
-            status: 'Active',
-            lastAssessment: new Date().toISOString()
-          }))
-          setItems(mapped)
-          setLoading(false)
-          return
-        }
-      } catch (apiError) {
-        console.warn('API failed, falling back to mock service:', apiError)
+      const res = await fetch('/api/properties')
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`)
       }
       
-      // Fallback to mock service
-      const mockProperties = mockService.properties.list()
-      const mapped = mockProperties.map((r: any) => ({
-        id: r.id,
+      const rows = await res.json()
+      const mapped = (rows ?? []).map((r: any) => ({
+        id: r.property_id ?? r.id,
         address: r.address,
         ward: r.ward,
         ptype: r.ptype,
         usage: r.usage,
-        landArea: Number(r.landArea ?? 0),
-        builtArea: Number(r.builtArea ?? 0),
-        owner: r.ownerId ?? null,
+        landArea: Number(r.land_area ?? r.landArea ?? 0),
+        builtArea: Number(r.built_area ?? r.builtArea ?? 0),
+        owner: r.owner_id ?? r.ownerId ?? null,
         status: 'Active',
         lastAssessment: new Date().toISOString()
       }))
@@ -79,53 +57,13 @@ export default function PropertiesPage() {
   async function handleDelete(id: number | string) {
     if (!confirm('Are you sure you want to delete this property?')) return
     try {
-      const property = items.find(p => p.id === id)
-      
-      // Try API first
-      try {
-        const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
-        if (res.ok) {
-          // Log activity for API success
-          mockService.activities.create({
-            id: 'act' + Date.now(),
-            user_id: 'u1',
-            username: 'admin',
-            action: 'DELETE',
-            entity_type: 'property',
-            entity_id: String(id),
-            entity_name: property?.address || 'Unknown Property',
-            details: `Deleted property from ${property?.ward || 'unknown ward'}`,
-            timestamp: new Date().toISOString(),
-            status: 'success'
-          })
-          
-          setItems(prev => prev.filter(item => item.id !== id))
-          console.log('Property deleted successfully via API:', id)
-          return
-        }
-      } catch (apiError) {
-        console.warn('API delete failed, using mock service:', apiError)
+      const res = await fetch(`/api/properties?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
+      if (!res.ok) {
+        throw new Error(`Delete failed: ${res.status} ${res.statusText}`)
       }
       
-      // Fallback to mock service
-      mockService.properties.delete(String(id))
-      
-      // Log activity
-      mockService.activities.create({
-        id: 'act' + Date.now(),
-        user_id: 'u1',
-        username: 'admin',
-        action: 'DELETE',
-        entity_type: 'property',
-        entity_id: String(id),
-        entity_name: property?.address || 'Unknown Property',
-        details: `Deleted property from ${property?.ward || 'unknown ward'}`,
-        timestamp: new Date().toISOString(),
-        status: 'success'
-      })
-      
       setItems(prev => prev.filter(item => item.id !== id))
-      console.log('Property deleted successfully with mock service:', id)
+      console.log('Property deleted successfully:', id)
     } catch (err) {
       console.error('delete property error:', err)
       setError(String(err))
@@ -137,89 +75,27 @@ export default function PropertiesPage() {
       setError(null)
       const payload = { address: 'New Property Address', ward: 'Ward 1', ptype: 'Residential', land_area: 0, built_area: 0, usage: 'Single Family' }
       
-      // Try API first
-      try {
-        const res = await fetch('/api/properties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        if (res.ok) {
-          const created = await res.json()
-          const newItem = {
-            id: created.property_id ?? created.id ?? 'p' + Date.now(),
-            address: created.address,
-            ward: created.ward,
-            ptype: created.ptype,
-            usage: created.usage,
-            landArea: Number(created.land_area ?? created.landArea ?? 0),
-            builtArea: Number(created.built_area ?? created.builtArea ?? 0),
-            owner: created.owner_id ?? created.ownerId ?? null,
-            status: 'Active',
-            lastAssessment: new Date().toISOString()
-          }
-          
-          // Log activity for API success
-          mockService.activities.create({
-            id: 'act' + Date.now(),
-            user_id: 'u1',
-            username: 'admin',
-            action: 'CREATE',
-            entity_type: 'property',
-            entity_id: newItem.id,
-            entity_name: newItem.address,
-            details: `Created ${newItem.ptype} property with ${newItem.builtArea} sq m built area in ${newItem.ward}`,
-            timestamp: new Date().toISOString(),
-            status: 'success'
-          })
-          
-          setItems(prev => [newItem, ...prev])
-          console.log('Property created successfully via API:', newItem)
-          return
-        }
-      } catch (apiError) {
-        console.warn('API create failed, using mock service:', apiError)
+      const res = await fetch('/api/properties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) {
+        throw new Error(`Create failed: ${res.status} ${res.statusText}`)
       }
       
-      // Fallback to mock service
-      const newProperty = {
-        id: 'p' + Date.now(),
-        ownerId: 'u2', // default owner
-        address: payload.address,
-        ward: payload.ward,
-        ptype: payload.ptype,
-        landArea: payload.land_area,
-        builtArea: payload.built_area,
-        usage: payload.usage
-      }
-      
-      mockService.properties.create(newProperty)
-      
-      // Log activity
-      mockService.activities.create({
-        id: 'act' + Date.now(),
-        user_id: 'u1',
-        username: 'admin',
-        action: 'CREATE',
-        entity_type: 'property',
-        entity_id: newProperty.id,
-        entity_name: newProperty.address,
-        details: `Created ${newProperty.ptype} property with ${newProperty.builtArea} sq m built area in ${newProperty.ward}`,
-        timestamp: new Date().toISOString(),
-        status: 'success'
-      })
-      
+      const created = await res.json()
       const newItem = {
-        id: newProperty.id,
-        address: newProperty.address,
-        ward: newProperty.ward,
-        ptype: newProperty.ptype,
-        usage: newProperty.usage,
-        landArea: newProperty.landArea,
-        builtArea: newProperty.builtArea,
-        owner: newProperty.ownerId,
+        id: created.property_id ?? created.id ?? 'p' + Date.now(),
+        address: created.address,
+        ward: created.ward,
+        ptype: created.ptype,
+        usage: created.usage,
+        landArea: Number(created.land_area ?? created.landArea ?? 0),
+        builtArea: Number(created.built_area ?? created.builtArea ?? 0),
+        owner: created.owner_id ?? created.ownerId ?? null,
         status: 'Active',
         lastAssessment: new Date().toISOString()
       }
       
       setItems(prev => [newItem, ...prev])
-      console.log('Property created successfully with mock service:', newItem)
+      console.log('Property created successfully:', newItem)
     } catch (err) {
       console.error('create property error:', err)
       setError(String(err))
@@ -243,88 +119,27 @@ export default function PropertiesPage() {
         built_area: Number(merged.builtArea ?? merged.built_area ?? 0)
       }
       
-      // Try API first
-      try {
-        const res = await fetch('/api/properties', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        if (res.ok) {
-          const updated = await res.json()
-          
-          // Log activity for API success
-          mockService.activities.create({
-            id: 'act' + Date.now(),
-            user_id: 'u1',
-            username: 'admin',
-            action: 'UPDATE',
-            entity_type: 'property',
-            entity_id: updated.property_id ?? updated.id,
-            entity_name: updated.address,
-            details: `Updated property details - ${updated.ptype}, ${updated.built_area ?? updated.builtArea} sq m`,
-            timestamp: new Date().toISOString(),
-            status: 'success'
-          })
-          
-          setItems(prev => prev.map(it => (it.id === (updated.property_id ?? updated.id) ? {
-            id: updated.property_id ?? updated.id,
-            address: updated.address,
-            ward: updated.ward,
-            ptype: updated.ptype,
-            usage: updated.usage,
-            landArea: Number(updated.land_area ?? updated.landArea ?? it.landArea),
-            builtArea: Number(updated.built_area ?? updated.builtArea ?? it.builtArea),
-            owner: updated.owner_id ?? updated.ownerId ?? it.owner,
-            status: it.status,
-            lastAssessment: it.lastAssessment
-          } : it)))
-          setEditing(null)
-          console.log('Property updated successfully via API:', updated)
-          return
-        }
-      } catch (apiError) {
-        console.warn('API update failed, using mock service:', apiError)
+      const res = await fetch('/api/properties', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) {
+        throw new Error(`Update failed: ${res.status} ${res.statusText}`)
       }
       
-      // Fallback to mock service
-      const updatedProperty = {
-        id: merged.id,
-        ownerId: merged.owner ?? 'u2',
-        address: merged.address,
-        ward: merged.ward,
-        ptype: merged.ptype,
-        landArea: Number(merged.landArea ?? merged.land_area ?? 0),
-        builtArea: Number(merged.builtArea ?? merged.built_area ?? 0),
-        usage: merged.usage
-      }
+      const updated = await res.json()
       
-      mockService.properties.update(updatedProperty)
-      
-      // Log activity
-      mockService.activities.create({
-        id: 'act' + Date.now(),
-        user_id: 'u1',
-        username: 'admin',
-        action: 'UPDATE',
-        entity_type: 'property',
-        entity_id: updatedProperty.id,
-        entity_name: updatedProperty.address,
-        details: `Updated property details - ${updatedProperty.ptype}, ${updatedProperty.builtArea} sq m`,
-        timestamp: new Date().toISOString(),
-        status: 'success'
-      })
-      
-      setItems(prev => prev.map(it => (it.id === merged.id ? {
-        id: merged.id,
-        address: merged.address,
-        ward: merged.ward,
-        ptype: merged.ptype,
-        usage: merged.usage,
-        landArea: updatedProperty.landArea,
-        builtArea: updatedProperty.builtArea,
-        owner: updatedProperty.ownerId,
+      setItems(prev => prev.map(it => (it.id === (updated.property_id ?? updated.id) ? {
+        id: updated.property_id ?? updated.id,
+        address: updated.address,
+        ward: updated.ward,
+        ptype: updated.ptype,
+        usage: updated.usage,
+        landArea: Number(updated.land_area ?? updated.landArea ?? it.landArea),
+        builtArea: Number(updated.built_area ?? updated.builtArea ?? it.builtArea),
+        owner: updated.owner_id ?? updated.ownerId ?? it.owner,
         status: it.status,
         lastAssessment: it.lastAssessment
       } : it)))
       setEditing(null)
-      console.log('Property updated successfully with mock service:', updatedProperty)
+      console.log('Property updated successfully:', updated)
     } catch (err) {
       console.error('save edit error', err)
       setError(String(err))

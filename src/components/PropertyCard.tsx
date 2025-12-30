@@ -4,13 +4,16 @@ import React from 'react'
 
 type Property = {
   id: string
-  ownerId: string
+  ownerId?: string
+  owner?: string | number | null
   address: string
   ward: string
   ptype: string
   landArea: number
   builtArea: number
   usage: string
+  status?: string
+  lastAssessment?: string
 }
 type Props = {
   property: Property

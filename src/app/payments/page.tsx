@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import Header from '../../components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { mockService } from '@/lib/mockService'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function PaymentsPage() {
@@ -26,28 +25,42 @@ export default function PaymentsPage() {
   async function fetchAll() {
     try {
       setLoading(true)
-      const pRows = mockService.payments.list()
-      const aRows = mockService.assessments.list()
-      setPayments((pRows ?? []).map((r: any) => ({ 
-        id: r.id, 
+      
+      // Fetch payments
+      const paymentsRes = await fetch('/api/payments')
+      const paymentsData = paymentsRes.ok ? await paymentsRes.json() : []
+      
+      // Fetch assessments
+      const assessmentsRes = await fetch('/api/assessments')
+      const assessmentsData = assessmentsRes.ok ? await assessmentsRes.json() : []
+      
+      // Fetch properties for address lookup
+      const propertiesRes = await fetch('/api/properties')
+      const propertiesData = propertiesRes.ok ? await propertiesRes.json() : []
+      
+      setPayments((paymentsData ?? []).map((r: any) => ({ 
+        id: r.id ?? r.payment_id, 
         method: r.method ?? r.payment_method, 
         paidAmount: Number(r.paidAmount ?? r.paid_amount), 
         paidOn: new Date(r.paidOn ?? r.paid_on), 
         txRef: r.txRef ?? r.transaction_ref, 
         assessId: r.assessId ?? r.assess_id, 
-        status: r.status ?? 'COMPLETED', 
+        status: r.status ?? r.payment_status ?? 'COMPLETED', 
         propertyAddress: '' 
       })))
-      setAssessments((aRows ?? []).map((r: any) => ({ 
-        id: r.id, 
+      
+      setAssessments((assessmentsData ?? []).map((r: any) => ({ 
+        id: r.id ?? r.assess_id, 
         financialYear: r.financialYear ?? r.financial_year, 
         assessedValue: Number(r.assessedValue ?? r.assessed_value), 
         totalDue: Number(r.totalDue ?? r.total_due), 
-        propertyAddress: mockService.properties.list().find(p => p.id === r.propertyId)?.address || '', 
+        propertyAddress: propertiesData.find((p: any) => p.property_id === r.property_id)?.address || '', 
         status: r.status 
       })))
+      
       setLoading(false)
     } catch (e) { 
+      console.error('fetch payments error:', e)
       setPayments([])
       setAssessments([])
       setLoading(false)
@@ -57,33 +70,25 @@ export default function PaymentsPage() {
   async function handlePay(payment: any) {
     try {
       const payload = { 
-        id: 'pay' + Date.now(), 
-        assessId: String(payment.assessId), 
-        paidAmount: Number(payment.paidAmount), 
-        paidOn: new Date().toISOString(), 
-        method: payment.method, 
-        txRef: payment.txRef 
+        assess_id: String(payment.assessId), 
+        paid_amount: Number(payment.paidAmount), 
+        payment_method: payment.method, 
+        transaction_ref: payment.txRef 
       }
-      mockService.payments.create(payload)
       
-      // Log activity
-      const assessment = assessments.find(a => String(a.id) === String(payment.assessId))
-      mockService.activities.create({
-        id: 'act' + Date.now(),
-        user_id: 'u2',
-        username: 'john',
-        action: 'CREATE',
-        entity_type: 'payment',
-        entity_id: payload.id,
-        entity_name: `Payment for ${assessment?.propertyAddress || 'Unknown Property'}`,
-        details: `Paid $${payload.paidAmount} via ${payload.method}`,
-        timestamp: new Date().toISOString(),
-        status: 'success'
+      const res = await fetch('/api/payments', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
       })
+      
+      if (!res.ok) {
+        throw new Error(`Payment creation failed: ${res.status} ${res.statusText}`)
+      }
       
       await fetchAll()
     } catch (e) { 
-      console.error(e) 
+      console.error('Payment creation error:', e) 
     }
   }
 
