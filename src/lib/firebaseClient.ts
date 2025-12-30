@@ -1,6 +1,6 @@
 "use client"
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signInWithRedirect } from 'firebase/auth'
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signInWithRedirect, UserCredential, User } from 'firebase/auth'
 
 // Firebase configuration must come from environment variables (NEXT_PUBLIC_*).
 // Do NOT store API keys or app secrets directly in source. Set them in your environment
@@ -18,13 +18,12 @@ const firebaseConfig = {
 // Helpful runtime warning for local dev when env vars are missing
 if (typeof window !== 'undefined') {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    // eslint-disable-next-line no-console
     console.warn('[firebaseClient] Missing Firebase environment variables. Please set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID.')
   }
 }
 
 if (!getApps().length) {
-  try { initializeApp(firebaseConfig) } catch (e) { /* ignore in dev without config */ }
+  try { initializeApp(firebaseConfig) } catch { /* ignore in dev without config */ }
 }
 
 export const auth = typeof window !== 'undefined' ? getAuth() : null
@@ -33,7 +32,7 @@ export const provider = typeof window !== 'undefined' ? new GoogleAuthProvider()
 // Keep an in-flight sign-in promise to avoid triggering multiple popups which
 // causes the `auth/cancelled-popup-request` error when a previous popup was
 // superseded or blocked.
-let inFlightSignIn: Promise<any> | null = null
+let inFlightSignIn: Promise<UserCredential> | null = null
 
 export async function signInWithGoogle() {
   if (!auth || !provider) throw new Error('Auth not initialized')
@@ -43,7 +42,7 @@ export async function signInWithGoogle() {
     try {
       const existing = await inFlightSignIn
       return existing.user
-    } catch (err) {
+    } catch {
       // If the previous attempt failed, clear and continue to attempt a new sign-in.
       inFlightSignIn = null
     }
@@ -53,9 +52,9 @@ export async function signInWithGoogle() {
   try {
     const res = await inFlightSignIn
     return res.user
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Known popup-related errors can be retried with a redirect flow.
-    const code = err?.code ?? err?.message
+    const code = (err as { code?: string; message?: string })?.code ?? (err as { code?: string; message?: string })?.message
     if (code === 'auth/cancelled-popup-request' || code === 'auth/popup-blocked') {
       // Clear the in-flight promise before redirecting.
       inFlightSignIn = null
@@ -71,7 +70,7 @@ export async function signInWithGoogle() {
   }
 }
 
-export function onAuthChange(cb: (user: any) => void) {
+export function onAuthChange(cb: (user: User | null) => void) {
   if (!auth) return () => {}
   return onAuthStateChanged(auth, (u) => cb(u))
 }

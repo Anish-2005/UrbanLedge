@@ -2,10 +2,19 @@
 
 import React from 'react'
 
-type PropType = any
+type Property = {
+  id: string
+  ownerId: string
+  address: string
+  ward: string
+  ptype: string
+  landArea: number
+  builtArea: number
+  usage: string
+}
 type Props = {
-  property: PropType
-  onEdit?: (p: PropType) => void
+  property: Property
+  onEdit?: (p: Property) => void
   onDelete?: (id: number | string) => void
 }
 

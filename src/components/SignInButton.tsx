@@ -7,11 +7,12 @@ import {
   onAuthChange,
   auth,
 } from "@/lib/firebaseClient";
-import { LogOut, LogIn } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { User } from "firebase/auth";
 
 export default function SignInButton() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme } = useTheme();
@@ -22,10 +23,10 @@ export default function SignInButton() {
       if (typeof window !== "undefined") {
         if (u) {
           u.getIdToken().then((t: string) => {
-            (window as any).__UL_FIREBASE_TOKEN = t;
+            (window as Window & { __UL_FIREBASE_TOKEN?: string }).__UL_FIREBASE_TOKEN = t;
           });
         } else {
-          (window as any).__UL_FIREBASE_TOKEN = null;
+          (window as Window & { __UL_FIREBASE_TOKEN?: string }).__UL_FIREBASE_TOKEN = undefined;
         }
       }
     });

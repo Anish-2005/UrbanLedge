@@ -2,7 +2,14 @@
 
 import React, { useState } from 'react'
 
-type Payment = any
+type Payment = {
+  id: string
+  assessId: string
+  paidAmount: number
+  paidOn: string
+  method: string
+  txRef?: string
+}
 type Props = {
   assessId: string | number
   onPay: (p: Payment) => void
@@ -16,7 +23,7 @@ export default function PaymentForm({ assessId, onPay }: Props) {
     e.preventDefault()
     const p: Payment = {
       id: 'pay' + Date.now(),
-      assessId,
+      assessId: String(assessId),
       paidAmount: Number(amount),
       paidOn: new Date().toISOString(),
       method,

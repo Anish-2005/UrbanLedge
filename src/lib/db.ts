@@ -6,21 +6,21 @@ let pool: Pool | null = null
 
 function getPool() {
   if (pool) return pool
-  const connectionString = process.env.DATABASE_URL
+  const connectionString = process.env.DATABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!connectionString) {
-    throw new Error('DATABASE_URL not set')
+    throw new Error('DATABASE_URL or NEXT_PUBLIC_SUPABASE_URL not set')
   }
-  const rejectUnauthorized = process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true' ? true : false
-  pool = new Pool({ connectionString, ssl: { rejectUnauthorized } as any })
+  // For Supabase, we typically don't need to set rejectUnauthorized to false
+  pool = new Pool({ connectionString })
   return pool
 }
 
 // Returns true when a real database is configured via env
 export async function isDbEnabled() {
-  return Boolean(process.env.DATABASE_URL)
+  return Boolean(process.env.DATABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)
 }
 
-export async function query(text: string, params?: any[]) {
+export async function query(text: string, params?: unknown[]) {
   const p = getPool()
   const client = await p.connect()
   try {

@@ -1,4 +1,6 @@
-'use client'
-// Supabase removed: stub file kept to avoid many imports failing during the transition.
-// Use `mockService` instead. This file intentionally exports a minimal shim.
-export const supabase = null as any
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

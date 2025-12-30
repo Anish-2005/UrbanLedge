@@ -2,7 +2,17 @@
 
 import React, { useState } from 'react'
 
-type Assessment = any
+type Assessment = {
+  id: string
+  propertyId: string
+  financialYear: string
+  assessedValue: number
+  baseTax: number
+  exemptionPct: number
+  penalty: number
+  totalDue: number
+  status: 'DUE' | 'PAID' | 'PARTIAL' | 'WRITTEN_OFF'
+}
 type Props = {
   initial?: Partial<Assessment>
   onSave: (a: Assessment) => void
@@ -17,7 +27,7 @@ export default function AssessmentForm({ initial = {}, onSave }: Props) {
     e.preventDefault()
     const a: Assessment = {
       id: initial.id || 'a' + Date.now(),
-      propertyId: initial.propertyId || initial.property_id || '',
+      propertyId: initial.propertyId || '',
       financialYear,
       assessedValue: Number(assessedValue),
       baseTax: Number(assessedValue),

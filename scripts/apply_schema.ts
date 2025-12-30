@@ -36,7 +36,7 @@ async function run() {
     console.log('Schema applied successfully')
   } catch (err) {
     console.error('Schema apply failed:', err)
-    try { await client.query('ROLLBACK') } catch (e) { /* ignore */ }
+    try { await client.query('ROLLBACK') } catch { /* ignore */ }
     process.exit(1)
   } finally {
     client.release()

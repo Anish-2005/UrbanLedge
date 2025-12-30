@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { Client } = require('pg');
 // dotenv doesn't load .env.local by default in Node scripts, so load it explicitly
 require('dotenv').config({ path: '.env.local' });

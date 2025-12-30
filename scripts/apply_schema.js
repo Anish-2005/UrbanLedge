@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs')
 const path = require('path')
 const { Pool } = require('pg')
@@ -30,7 +31,7 @@ if (!conn) {
     console.log('Schema applied successfully')
   } catch (err) {
     console.error('Schema apply failed:', err)
-    try { await client.query('ROLLBACK') } catch (e) {}
+    try { await client.query('ROLLBACK') } catch {}
     process.exit(1)
   } finally {
     client.release(); await pool.end()

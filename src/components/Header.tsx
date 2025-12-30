@@ -6,11 +6,12 @@ import SignInButton from "./SignInButton";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Home, MapPin, FileText, CreditCard, Settings } from 'lucide-react'
+import { LucideIcon } from 'lucide-react'
 
 type NavItem = {
   name: string
   href: string
-  icon: any
+  icon: LucideIcon
 }
 
 const mobileNavigation: NavItem[] = [

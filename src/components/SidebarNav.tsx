@@ -5,8 +5,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import type { LucideProps } from 'lucide-react'
 import { 
-  Home, MapPin, FileText, CreditCard, Settings, 
-  TrendingUp, Users, Building, Wallet, Target 
+  Home, MapPin, FileText, CreditCard, Settings
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 type NavItem = {

@@ -117,7 +117,7 @@ function read<T>(key: string, fallback: T): T {
   if (!raw) return fallback
   try {
     return JSON.parse(raw) as T
-  } catch (e) {
+  } catch {
     return fallback
   }
 }
@@ -125,7 +125,7 @@ function read<T>(key: string, fallback: T): T {
 function write<T>(key: string, data: T) {
   try {
     safeStorage.setItem(LS_PREFIX + key, JSON.stringify(data))
-  } catch (e) {
+  } catch {
     // ignore write errors on server
   }
 }

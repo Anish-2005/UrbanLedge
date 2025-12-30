@@ -4,20 +4,55 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  TrendingUp, DollarSign, Users, Calendar, 
-  ChevronRight, Receipt, Building, Wallet, Target,
-  ArrowRight, MapPin, FileText, Plus
+  DollarSign, Building, Wallet, Target, Plus, TrendingUp,
+  ArrowRight,
+  Calendar,
+  ChevronRight,
+  FileText,
+  MapPin,
+  Users
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 
+interface Property {
+  property_id: string | number
+  address: string
+  ward: string
+  land_area: number
+  built_area: number
+  ptype: string
+}
+
+interface Assessment {
+  assess_id: string | number
+  property_id: string | number
+  financial_year: string
+  assessed_value: number
+  base_tax: number
+  total_due: number
+  status: string
+  created_at: string
+  propertyAddress: string
+}
+
+interface Payment {
+  payment_id: string | number
+  assess_id: string | number
+  paid_amount: number
+  paid_on: Date
+  payment_method: string
+  transaction_ref: string
+  propertyAddress: string
+}
+
 export default function PrototypePage() {
   const router = useRouter()
-  const [properties, setProperties] = useState<any[]>([])
-  const [assessments, setAssessments] = useState<any[]>([])
-  const [payments, setPayments] = useState<any[]>([])
+  const [properties, setProperties] = useState<Property[]>([])
+  const [assessments, setAssessments] = useState<Assessment[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -35,42 +70,51 @@ export default function PrototypePage() {
         const payRows = payRes.ok ? await payRes.json() : []
 
         // Normalize property ids to strings for easy matching in client
-        const props = (pRows ?? []).map((p: any) => ({
-          property_id: p.property_id ?? p.id ?? p.propertyId,
-          address: p.address || p.addr || p.property_address || '',
-          ward: p.ward || p.ward_name || p.ward_id || '',
-          land_area: Number(p.land_area ?? p.landArea ?? 0),
-          built_area: Number(p.built_area ?? p.builtArea ?? 0),
-          ptype: p.ptype || p.ptype_name || p.ptype_id || ''
-        }))
+        const props: Property[] = (pRows ?? []).map((p: unknown) => {
+          const prop = p as { [key: string]: any }
+          return {
+            property_id: prop.property_id ?? prop.id ?? prop.propertyId,
+            address: prop.address || prop.addr || prop.property_address || '',
+            ward: prop.ward || prop.ward_name || prop.ward_id || '',
+            land_area: Number(prop.land_area ?? prop.landArea ?? 0),
+            built_area: Number(prop.built_area ?? prop.builtArea ?? 0),
+            ptype: prop.ptype || prop.ptype_name || prop.ptype_id || ''
+          }
+        })
 
         // Map assessments to include property address when available
-        const assessmentsMapped = (aRows ?? []).map((a: any) => ({
-          assess_id: a.assess_id ?? a.id,
-          property_id: a.property_id,
-          financial_year: a.financial_year ?? a.financialYear,
-          assessed_value: Number(a.assessed_value ?? a.assessedValue ?? 0),
-          base_tax: Number(a.base_tax ?? a.baseTax ?? 0),
-          total_due: Number(a.total_due ?? a.totalDue ?? 0),
-          status: a.status,
-          created_at: a.created_at ?? a.createdAt,
-          propertyAddress: (props.find((pp: any) => String(pp.property_id) === String(a.property_id)) || {}).address || ''
-        }))
+        const assessmentsMapped: Assessment[] = (aRows ?? []).map((a: unknown) => {
+          const assessment = a as { [key: string]: any }
+          return {
+            assess_id: assessment.assess_id ?? assessment.id,
+            property_id: assessment.property_id,
+            financial_year: assessment.financial_year ?? assessment.financialYear,
+            assessed_value: Number(assessment.assessed_value ?? assessment.assessedValue ?? 0),
+            base_tax: Number(assessment.base_tax ?? assessment.baseTax ?? 0),
+            total_due: Number(assessment.total_due ?? assessment.totalDue ?? 0),
+            status: assessment.status,
+            created_at: assessment.created_at ?? assessment.createdAt,
+            propertyAddress: (props.find((pp) => String(pp.property_id) === String(assessment.property_id)) || {}).address || ''
+          }
+        })
 
         // Map payments and attach receipt/assessment info when possible
-        const paymentsMapped = (payRows ?? []).map((p: any) => ({
-          payment_id: p.payment_id ?? p.id,
-          assess_id: p.assess_id ?? p.assessId ?? p.assessId,
-          paid_amount: Number(p.paid_amount ?? p.paidAmount ?? 0),
-          paid_on: p.paid_on ? new Date(p.paid_on) : p.paidOn ? new Date(p.paidOn) : new Date(),
-          payment_method: p.payment_method ?? p.method ?? p.payment_method,
-          transaction_ref: p.transaction_ref ?? p.txRef ?? p.transaction_ref,
-          propertyAddress: ''
-        }))
+        const paymentsMapped: Payment[] = (payRows ?? []).map((p: unknown) => {
+          const pay = p as { [key: string]: any }
+          return {
+            payment_id: pay.payment_id ?? pay.id,
+            assess_id: pay.assess_id ?? pay.assessId ?? pay.assessId,
+            paid_amount: Number(pay.paid_amount ?? pay.paidAmount ?? 0),
+            paid_on: pay.paid_on ? new Date(pay.paid_on) : pay.paidOn ? new Date(pay.paidOn) : new Date(),
+            payment_method: pay.payment_method ?? pay.method ?? pay.payment_method,
+            transaction_ref: pay.transaction_ref ?? pay.txRef ?? pay.transaction_ref,
+            propertyAddress: ''
+          }
+        })
 
         // Attach propertyAddress to payments by joining on assessment
-        paymentsMapped.forEach((pay: any) => {
-          const asmt = assessmentsMapped.find((a: any) => String(a.assess_id) === String(pay.assess_id))
+        paymentsMapped.forEach((pay) => {
+          const asmt = assessmentsMapped.find((a) => String(a.assess_id) === String(pay.assess_id))
           if (asmt) pay.propertyAddress = asmt.propertyAddress
         })
 
@@ -85,8 +129,8 @@ export default function PrototypePage() {
   }, [])
 
   // Compute live metrics from fetched data
-  const totalDue = assessments.reduce((s, a) => s + (Number(a.total_due ?? a.totalDue ?? 0)), 0)
-  const revenue = payments.reduce((s, p) => s + (Number(p.paid_amount ?? p.paidAmount ?? 0)), 0)
+  const totalDue = assessments.reduce((s, a) => s + (Number(a.total_due ?? 0)), 0)
+  const revenue = payments.reduce((s, p) => s + (Number(p.paid_amount ?? 0)), 0)
 
   const stats = [
     { 
@@ -95,7 +139,7 @@ export default function PrototypePage() {
       change: '+12.5%', 
       icon: DollarSign, 
       gradient: 'from-emerald-500 to-teal-600',
-      description: 'Current fiscal year',
+      description: "Current fiscal year",
       trend: 'up'
     },
     { 
@@ -104,7 +148,7 @@ export default function PrototypePage() {
       change: '-3.2%', 
       icon: Wallet, 
       gradient: 'from-amber-500 to-orange-600',
-      description: 'Pending collections',
+      description: "Pending collections",
       trend: 'down'
     },
     { 
@@ -129,17 +173,17 @@ export default function PrototypePage() {
 
   // Aggregate wards from properties and assessments
   const wardMap: Record<string, { name: string; properties: number; amount: number; gradient: string }> = {}
-  properties.forEach((p: any, idx: number) => {
+  properties.forEach((p, idx) => {
     const name = p.ward || 'Unassigned'
     if (!wardMap[name]) wardMap[name] = { name, properties: 0, amount: 0, gradient: idx % 2 === 0 ? 'from-blue-500 to-cyan-600' : 'from-emerald-500 to-teal-600' }
     wardMap[name].properties += 1
   })
   // Sum total_due per ward by joining assessments -> properties
-  assessments.forEach((a: any) => {
-    const prop = properties.find((p: any) => String(p.property_id) === String(a.property_id))
+  assessments.forEach((a) => {
+    const prop = properties.find((p) => String(p.property_id) === String(a.property_id))
     const wardName = prop?.ward || 'Unassigned'
     if (!wardMap[wardName]) wardMap[wardName] = { name: wardName, properties: 0, amount: 0, gradient: 'from-gray-400 to-gray-500' }
-    wardMap[wardName].amount += Number(a.total_due ?? a.totalDue ?? 0)
+    wardMap[wardName].amount += Number(a.total_due ?? 0)
   })
 
   const wards = Object.values(wardMap).map(w => ({ name: w.name, amount: `$${w.amount.toFixed(2)}`, properties: w.properties, progress: Math.min(100, Math.round((w.properties / Math.max(1, properties.length)) * 100)), gradient: w.gradient }))
