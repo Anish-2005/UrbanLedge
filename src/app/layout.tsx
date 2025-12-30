@@ -137,10 +137,10 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData),
           }}
         />
-        <link rel="canonical" href="https://urbanledge.com" />
+        <link rel="canonical" href="https://urbanledge.vercel.app" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={inter.className}>
