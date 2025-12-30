@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Search, User, Bell, Building2, Menu, X } from "lucide-react";
+import { Search, User, Bell, Menu, X } from "lucide-react";
 import { useState } from "react";
 import SignInButton from "./SignInButton";
 import ThemeToggle from "./ThemeToggle";
@@ -47,20 +47,11 @@ export default function Header() {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
-            <div
-              className={`
-                relative p-2 rounded-2xl bg-gradient-to-br shadow-lg
-                ${
-                  theme === "light"
-                    ? "from-indigo-600 to-emerald-500 hover:from-indigo-700 hover:to-emerald-600"
-                    : "from-blue-600 to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800"
-                }
-                group transition-all duration-300
-              `}
-            >
-              <Building2 size={20} className="text-white" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
+            <img
+              src="/urbanledge.png"
+              alt="UrbanLedge Logo"
+              className="w-12 h-12 object-contain transition-all duration-300 hover:scale-105"
+            />
 
             <div className="flex flex-col">
               <span

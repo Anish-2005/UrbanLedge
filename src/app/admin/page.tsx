@@ -167,24 +167,11 @@ export default function AdminPage() {
         setActivities(data || [])
       } else {
         console.error('Failed to fetch activities, status:', res.status)
-        // Fallback to direct mockService call
-        const { mockService } = await import('@/lib/mockService')
-        const data = mockService.activities.list()
-        console.log('Activities from mockService:', data.length, 'items')
-        setActivities(data || [])
+        setActivities([])
       }
     } catch (err) {
       console.error('fetch activities error:', err)
-      // Fallback to direct mockService call
-      try {
-        const { mockService } = await import('@/lib/mockService')
-        const data = mockService.activities.list()
-        console.log('Activities from mockService (error fallback):', data.length, 'items')
-        setActivities(data || [])
-      } catch (fallbackErr) {
-        console.error('fallback error:', fallbackErr)
-        setActivities([])
-      }
+      setActivities([])
     } finally {
       setLoadingActivities(false)
     }
@@ -1045,13 +1032,18 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
-        const action = slab.slab_id ? 'UPDATE' : 'CREATE'
-        const slabName = `${slab.property_type_name} Tax Slab`
-        logActivity('u1', 'admin', action, 'tax_slab', 
-          slab.slab_id || slab.id || 'new', 
-          slabName, 
-          `${action === 'CREATE' ? 'Created' : 'Updated'} tax slab: ${slab.min_area}-${slab.max_area || '∞'} sq m @ $${slab.base_rate_per_sq_m}/sq m`)
+        // Log activity
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: slab.slab_id ? 'UPDATE' : 'CREATE',
+            entity_type: 'tax_slab',
+            record_id: slab.slab_id || slab.id || 'new',
+            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || '∞'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
+          })
+        })
         
         setEditingTaxSlab(null)
         fetchTaxSlabs()
@@ -1092,11 +1084,17 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
-        logActivity('u1', 'admin', 'DELETE', 'tax_slab', 
-          String(id), 
-          slab?.property_type_name || 'Tax Slab', 
-          `Deleted tax slab for ${slab?.property_type_name || 'property type'}`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: 'DELETE',
+            entity_type: 'tax_slab',
+            record_id: String(id),
+            description: `Deleted tax slab for ${slab?.property_type_name || 'property type'}`
+          })
+        })
         
         fetchTaxSlabs()
         if (activeTab === 'activities') fetchActivities()
@@ -1136,13 +1134,18 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
         const action = exemption.exemption_id ? 'UPDATE' : 'CREATE'
-        const name = exemption.exemption_name || exemption.category
-        logActivity('u1', 'admin', action, 'exemption', 
-          exemption.exemption_id || exemption.id || 'new', 
-          name, 
-          `${action === 'CREATE' ? 'Created' : 'Updated'} exemption: ${exemption.exemption_percentage || exemption.discount_pct}% discount`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: action,
+            entity_type: 'exemption',
+            record_id: exemption.exemption_id || exemption.id || 'new',
+            description: `${action === 'CREATE' ? 'Created' : 'Updated'} exemption: ${exemption.exemption_percentage || exemption.discount_pct}% discount`
+          })
+        })
         
         setEditingExemption(null)
         fetchExemptions()
@@ -1183,11 +1186,17 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
-        logActivity('u1', 'admin', 'DELETE', 'exemption', 
-          String(id), 
-          exemption?.exemption_name || exemption?.category || 'Exemption', 
-          `Deleted exemption: ${exemption?.exemption_name || exemption?.category || 'Unknown'}`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: 'DELETE',
+            entity_type: 'exemption',
+            record_id: String(id),
+            description: `Deleted exemption: ${exemption?.exemption_name || exemption?.category || 'Unknown'}`
+          })
+        })
         
         fetchExemptions()
         if (activeTab === 'activities') fetchActivities()
@@ -1225,13 +1234,18 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
         const action = ward.ward_id ? 'UPDATE' : 'CREATE'
-        const name = ward.name || ward.ward_name
-        logActivity('u1', 'admin', action, 'ward', 
-          ward.ward_id || ward.id || 'new', 
-          name, 
-          `${action === 'CREATE' ? 'Created' : 'Updated'} ward: ${ward.area_description || name}`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: action,
+            entity_type: 'ward',
+            record_id: ward.ward_id || ward.id || 'new',
+            description: `${action === 'CREATE' ? 'Created' : 'Updated'} ward: ${ward.area_description || ward.name || ward.ward_name}`
+          })
+        })
         
         setEditingWard(null)
         fetchWards()
@@ -1259,11 +1273,17 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
-        logActivity('u1', 'admin', 'DELETE', 'ward', 
-          String(id), 
-          ward?.name || ward?.ward_name || 'Ward', 
-          `Deleted ward: ${ward?.name || ward?.ward_name || 'Unknown'}`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: 'DELETE',
+            entity_type: 'ward',
+            record_id: String(id),
+            description: `Deleted ward: ${ward?.name || ward?.ward_name || 'Unknown'}`
+          })
+        })
         
         fetchWards()
         if (activeTab === 'activities') fetchActivities()
@@ -1308,12 +1328,18 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
         const action = user.user_id ? 'UPDATE' : 'CREATE'
-        logActivity('u1', 'admin', action, 'user', 
-          user.user_id || user.id || 'new', 
-          user.username, 
-          `${action === 'CREATE' ? 'Created' : 'Updated'} user account with ${Array.isArray(user.roles) ? user.roles.join(', ') : user.roles} role(s)`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: action,
+            entity_type: 'user',
+            record_id: user.user_id || user.id || 'new',
+            description: `${action === 'CREATE' ? 'Created' : 'Updated'} user account with ${Array.isArray(user.roles) ? user.roles.join(', ') : user.roles} role(s)`
+          })
+        })
         
         setEditingUser(null)
         fetchUsers()
@@ -1341,11 +1367,17 @@ export default function AdminPage() {
       
       if (response.ok) {
         // Log activity
-        const { logActivity } = await import('@/lib/mockService')
-        logActivity('u1', 'admin', 'DELETE', 'user', 
-          String(id), 
-          user?.username || 'User', 
-          `Deleted user account: ${user?.username || 'Unknown'} (${user?.full_name || user?.fullName || ''})`)
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1, // Default admin user
+            action: 'DELETE',
+            entity_type: 'user',
+            record_id: String(id),
+            description: `Deleted user account: ${user?.username || 'Unknown'} (${user?.full_name || user?.fullName || ''})`
+          })
+        })
         
         fetchUsers()
         if (activeTab === 'activities') fetchActivities()
