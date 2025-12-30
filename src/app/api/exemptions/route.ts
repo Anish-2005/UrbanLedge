@@ -12,19 +12,8 @@ export async function GET() {
       `)
       return NextResponse.json(res.rows)
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const exemptions = mockService.exemptions.list()
-      return NextResponse.json(exemptions.map(e => ({
-        id: e.id,
-        exemption_id: e.id,
-        category: e.category,
-        exemption_name: e.category,
-        description: e.description,
-        discount_pct: e.discount_pct,
-        exemption_percentage: e.discount_pct,
-        active: e.active
-      })))
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error fetching exemptions:', error)
@@ -55,27 +44,8 @@ export async function POST(request: NextRequest) {
       const result = await query(queryText, [name, percentage, valid_from || null, valid_to || null, active !== false])
       return NextResponse.json(result.rows[0])
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const newExemption = {
-        id: 'ex' + Date.now(),
-        category: name,
-        description: description || '',
-        discount_pct: Number(percentage),
-        active: active !== false
-      }
-
-      mockService.exemptions.create(newExemption)
-      return NextResponse.json({
-        id: newExemption.id,
-        exemption_id: newExemption.id,
-        category: newExemption.category,
-        exemption_name: newExemption.category,
-        description: newExemption.description,
-        discount_pct: newExemption.discount_pct,
-        exemption_percentage: newExemption.discount_pct,
-        active: newExemption.active
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error creating exemption:', error)
@@ -113,27 +83,8 @@ export async function PUT(request: NextRequest) {
 
       return NextResponse.json(result.rows[0])
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const updatedExemption = {
-        id: exId,
-        category: name,
-        description: description || '',
-        discount_pct: Number(percentage),
-        active: active !== false
-      }
-
-      mockService.exemptions.update(updatedExemption)
-      return NextResponse.json({
-        id: updatedExemption.id,
-        exemption_id: updatedExemption.id,
-        category: updatedExemption.category,
-        exemption_name: updatedExemption.category,
-        description: updatedExemption.description,
-        discount_pct: updatedExemption.discount_pct,
-        exemption_percentage: updatedExemption.discount_pct,
-        active: updatedExemption.active
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error updating exemption:', error)
@@ -157,10 +108,8 @@ export async function DELETE(request: NextRequest) {
       await query(queryText, [exId])
       return NextResponse.json({ message: 'Exemption deleted successfully', success: true })
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      mockService.exemptions.delete(exId)
-      return NextResponse.json({ message: 'Exemption deleted successfully', success: true })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error deleting exemption:', error)

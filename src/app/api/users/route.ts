@@ -16,21 +16,8 @@ export async function GET() {
       `)
       return NextResponse.json(res.rows)
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const users = mockService.users.list()
-      return NextResponse.json(users.map(u => ({
-        id: u.id,
-        user_id: u.id,
-        username: u.username,
-        full_name: u.fullName,
-        fullName: u.fullName,
-        email: u.username + '@example.com',
-        phone: '1234567890',
-        status: 'ACTIVE',
-        roles: u.roles,
-        created_at: new Date().toISOString()
-      })))
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('GET /api/users error', err?.message || err)
@@ -64,27 +51,8 @@ export async function POST(req: Request) {
 
       return NextResponse.json(user)
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const newUser = {
-        id: 'u' + Date.now(),
-        username,
-        fullName: full_name || fullName,
-        roles: roles || ['OWNER']
-      }
-
-      mockService.users.create(newUser)
-      return NextResponse.json({
-        id: newUser.id,
-        user_id: newUser.id,
-        username: newUser.username,
-        full_name: newUser.fullName,
-        fullName: newUser.fullName,
-        email: email || username + '@example.com',
-        phone: phone || '1234567890',
-        status: 'ACTIVE',
-        roles: newUser.roles
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('POST /api/users error', err?.message || err)
@@ -131,27 +99,8 @@ export async function PUT(req: Request) {
 
       return NextResponse.json(userRes.rows[0])
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const updatedUser = {
-        id: userId,
-        username,
-        fullName: full_name || fullName,
-        roles: roles || ['OWNER']
-      }
-
-      mockService.users.update(updatedUser)
-      return NextResponse.json({
-        id: updatedUser.id,
-        user_id: updatedUser.id,
-        username: updatedUser.username,
-        full_name: updatedUser.fullName,
-        fullName: updatedUser.fullName,
-        email: email || username + '@example.com',
-        phone: phone || '1234567890',
-        status: status || 'ACTIVE',
-        roles: updatedUser.roles
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('PUT /api/users error', err?.message || err)
@@ -179,10 +128,8 @@ export async function DELETE(req: Request) {
       
       return NextResponse.json({ success: true })
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      mockService.users.delete(userId)
-      return NextResponse.json({ success: true })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('DELETE /api/users error', err?.message || err)

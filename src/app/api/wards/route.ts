@@ -21,21 +21,8 @@ export async function GET() {
       const result = await query(queryText)
       return NextResponse.json(result.rows || result)
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const wards = mockService.wards.list()
-      return NextResponse.json(wards.map(w => ({
-        id: w.id,
-        ward_id: w.id,
-        name: w.ward_name,
-        ward_name: w.ward_name,
-        zone: w.zone,
-        area_description: `Zone: ${w.zone}, Area: ${w.area_sq_km} sq km`,
-        population: w.population,
-        area_sq_km: w.area_sq_km,
-        property_count: 0,
-        total_revenue: 0
-      })))
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error fetching wards:', error)
@@ -64,27 +51,8 @@ export async function POST(request: NextRequest) {
       const result = await query(queryText, [wardName, area_description])
       return NextResponse.json(result.rows[0])
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const newWard = {
-        id: 'w' + Date.now(),
-        ward_name: wardName,
-        zone: zone || 'Central',
-        population: Number(population) || 10000,
-        area_sq_km: Number(area_sq_km) || 5.0
-      }
-
-      mockService.wards.create(newWard)
-      return NextResponse.json({
-        id: newWard.id,
-        ward_id: newWard.id,
-        name: newWard.ward_name,
-        ward_name: newWard.ward_name,
-        zone: newWard.zone,
-        area_description: `Zone: ${newWard.zone}, Area: ${newWard.area_sq_km} sq km`,
-        population: newWard.population,
-        area_sq_km: newWard.area_sq_km
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error creating ward:', error)
@@ -120,27 +88,8 @@ export async function PUT(request: NextRequest) {
 
       return NextResponse.json(result.rows[0])
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const updatedWard = {
-        id: wId,
-        ward_name: wardName,
-        zone: zone || 'Central',
-        population: Number(population) || 10000,
-        area_sq_km: Number(area_sq_km) || 5.0
-      }
-
-      mockService.wards.update(updatedWard)
-      return NextResponse.json({
-        id: updatedWard.id,
-        ward_id: updatedWard.id,
-        name: updatedWard.ward_name,
-        ward_name: updatedWard.ward_name,
-        zone: updatedWard.zone,
-        area_description: `Zone: ${updatedWard.zone}, Area: ${updatedWard.area_sq_km} sq km`,
-        population: updatedWard.population,
-        area_sq_km: updatedWard.area_sq_km
-      })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error updating ward:', error)
@@ -163,10 +112,8 @@ export async function DELETE(request: NextRequest) {
       await query(queryText, [wId])
       return NextResponse.json({ message: 'Ward deleted successfully', success: true })
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      mockService.wards.delete(wId)
-      return NextResponse.json({ message: 'Ward deleted successfully', success: true })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (error) {
     console.error('Error deleting ward:', error)

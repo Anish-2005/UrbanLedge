@@ -15,11 +15,8 @@ export async function GET() {
       `)
       return NextResponse.json(res.rows)
     } catch (dbErr) {
-      console.log('Database not available, using mock service')
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const taxSlabs = mockService.taxSlabs.list()
-      return NextResponse.json(taxSlabs)
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('GET /api/tax-slabs error', err?.message || err)
@@ -50,22 +47,8 @@ export async function POST(req: Request) {
       )
       return NextResponse.json(res.rows[0])
     } catch (dbErr) {
-      console.log('Database not available, using mock service')
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const newSlab = {
-        id: 'ts' + Date.now(),
-        ptype_id,
-        property_type_name,
-        min_area: Number(min_area),
-        max_area: max_area ? Number(max_area) : null,
-        base_rate_per_sq_m: Number(base_rate_per_sq_m),
-        effective_from,
-        effective_to,
-        active: active !== false
-      }
-      mockService.taxSlabs.create(newSlab)
-      return NextResponse.json(newSlab)
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('POST /api/tax-slabs error', err?.message || err)
@@ -101,22 +84,8 @@ export async function PUT(req: Request) {
       )
       return NextResponse.json(res.rows[0])
     } catch (dbErr) {
-      console.log('Database not available, using mock service')
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const updatedSlab = {
-        id: slabId,
-        ptype_id,
-        property_type_name,
-        min_area: Number(min_area),
-        max_area: max_area ? Number(max_area) : null,
-        base_rate_per_sq_m: Number(base_rate_per_sq_m),
-        effective_from,
-        effective_to,
-        active: active !== false
-      }
-      mockService.taxSlabs.update(updatedSlab)
-      return NextResponse.json(updatedSlab)
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('PUT /api/tax-slabs error', err?.message || err)
@@ -139,11 +108,8 @@ export async function DELETE(req: Request) {
       await query('DELETE FROM tax_slab WHERE slab_id = $1', [slabId])
       return NextResponse.json({ success: true })
     } catch (dbErr) {
-      console.log('Database not available, using mock service')
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      mockService.taxSlabs.delete(slabId)
-      return NextResponse.json({ success: true })
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('DELETE /api/tax-slabs error', err?.message || err)

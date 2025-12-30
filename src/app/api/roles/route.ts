@@ -8,16 +8,8 @@ export async function GET() {
       const res = await query('SELECT * FROM role ORDER BY role_id')
       return NextResponse.json(res.rows)
     } catch (dbErr) {
-      // Fallback to mock service
-      const { mockService } = await import('@/lib/mockService')
-      const roles = mockService.roles.list()
-      return NextResponse.json(roles.map(r => ({
-        id: r.id,
-        role_id: r.id,
-        name: r.role_name,
-        role_name: r.role_name,
-        description: r.description
-      })))
+      console.error('Database error:', dbErr)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
   } catch (err: any) {
     console.error('GET /api/roles error', err?.message || err)
