@@ -8,42 +8,7 @@ export async function GET() {
     return NextResponse.json(res.rows)
   } catch (err: any) {
     console.error('GET /api/assessments error', err?.message || err)
-    // If database is not available, return mock data instead of empty array
-    if (err?.code === 'ENOTFOUND' || 
-        err?.message?.includes('getaddrinfo ENOTFOUND') || 
-        err?.message?.includes('relation') || 
-        err?.message?.includes('does not exist') ||
-        err?.message?.includes('JWT') ||
-        err?.message?.includes('auth') ||
-        !err?.message?.includes('mock')) { // Catch any database-related errors
-      console.log('Database not available, returning mock data for assessments')
-      const mockAssessments = [
-        {
-          assess_id: 'mock_assess_1',
-          property_id: 'mock_1',
-          financial_year: '2024-25',
-          assessed_value: 1500000,
-          base_tax: 30000,
-          exemption_pct: 0,
-          penalty: 0,
-          total_due: 30000,
-          status: 'DUE'
-        },
-        {
-          assess_id: 'mock_assess_2',
-          property_id: 'mock_2',
-          financial_year: '2024-25',
-          assessed_value: 2500000,
-          base_tax: 50000,
-          exemption_pct: 0,
-          penalty: 0,
-          total_due: 50000,
-          status: 'PAID'
-        }
-      ]
-      return NextResponse.json(mockAssessments)
-    }
-    return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
+    return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
   }
 }
 
@@ -82,30 +47,6 @@ export async function POST(req: Request) {
     return NextResponse.json(createdAssessment)
   } catch (err: any) {
     console.error('POST /api/assessments error', err?.message || err)
-    // If database is not available, simulate successful assessment creation
-    if (err?.code === 'ENOTFOUND' || 
-        err?.message?.includes('getaddrinfo ENOTFOUND') || 
-        err?.message?.includes('relation') || 
-        err?.message?.includes('does not exist') ||
-        err?.message?.includes('JWT') ||
-        err?.message?.includes('auth') ||
-        !err?.message?.includes('mock')) { // Catch any database-related errors
-      console.log('Database not available, simulating assessment creation with mock data')
-      const body = await req.json().catch(() => ({}))
-      const mockAssessment = {
-        assess_id: 'mock_assess_' + Date.now(),
-        property_id: body.property_id || 'mock_prop_1',
-        financial_year: body.financial_year || '2024-25',
-        assessed_value: 100000,
-        base_tax: 2000,
-        exemption_pct: 0,
-        penalty: 0,
-        total_due: 2000,
-        status: 'DUE'
-      }
-      return NextResponse.json(mockAssessment)
-    }
-    console.error('Assessment creation error:', err.message)
-    return NextResponse.json({ error: err.message }, { status: 400 })
+    return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
   }
 }

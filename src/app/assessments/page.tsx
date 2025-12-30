@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import SidebarNav from '@/components/SidebarNav'
-import { mockService } from '@/lib/mockService'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function AssessmentsPage() {
@@ -37,22 +36,28 @@ export default function AssessmentsPage() {
   async function fetchList() {
     try {
       setLoading(true)
-      const rows = mockService.assessments.list()
+      
+      const res = await fetch('/api/assessments')
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`)
+      }
+      
+      const rows = await res.json()
       // Map assessments and add property addresses
       const mapped = rows.map((r: any) => {
-        const property = properties.find((p: any) => String(p.id) === String(r.propertyId))
+        const property = properties.find((p: any) => String(p.property_id) === String(r.property_id))
         return {
-          id: r.id,
-          financialYear: r.financialYear,
-          assessedValue: Number(r.assessedValue),
-          baseTax: Number(r.baseTax),
-          exemptionPct: Number(r.exemptionPct || 0),
+          id: r.assess_id || r.id,
+          financialYear: r.financial_year,
+          assessedValue: Number(r.assessed_value),
+          baseTax: Number(r.base_tax),
+          exemptionPct: Number(r.exemption_pct || 0),
           penalty: Number(r.penalty || 0),
-          totalDue: Number(r.totalDue),
+          totalDue: Number(r.total_due),
           status: r.status,
-          propertyId: r.propertyId,
+          propertyId: r.property_id,
           propertyAddress: property?.address || 'Unknown Property',
-          createdAt: new Date().toISOString()
+          createdAt: r.created_at || new Date().toISOString()
         }
       })
       setItems(mapped)
@@ -66,21 +71,11 @@ export default function AssessmentsPage() {
 
   async function fetchProperties() {
     try {
-      // First try mock service
-      const mockProperties = mockService.properties.list()
-      if (mockProperties && mockProperties.length > 0) {
-        const mapped = mockProperties.map((r: any) => ({
-          id: String(r.id || r.property_id || r.propertyId),
-          address: r.address || r.addr || r.property_address || '',
-          ward: r.ward || r.ward_name || r.ward_id || ''
-        }))
-        setProperties(mapped)
-        return
-      }
-
-      // Fallback to API
       const res = await fetch('/api/properties')
-      if (!res.ok) throw new Error('Failed to fetch properties')
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`)
+      }
+      
       const rows = await res.json()
       const mapped = (rows ?? []).map((r: any) => ({
         id: String(r.property_id ?? r.id ?? r.propertyId),
@@ -90,12 +85,7 @@ export default function AssessmentsPage() {
       setProperties(mapped)
     } catch (e) {
       console.error('Failed to fetch properties:', e)
-      // Set some default properties if both fail
-      setProperties([
-        { id: '1', address: '123 Main Street', ward: 'Ward 1' },
-        { id: '2', address: '456 Oak Avenue', ward: 'Ward 2' },
-        { id: '3', address: '789 Pine Road', ward: 'Ward 3' }
-      ])
+      setProperties([])
     }
   }
 
@@ -104,48 +94,42 @@ export default function AssessmentsPage() {
       // Find the property to get its address
       const property = properties.find(p => p.id === assessment.propertyId)
       
-      const newA = { 
-        id: 'a' + Date.now(), 
-        propertyId: String(assessment.propertyId), 
-        financialYear: assessment.financialYear, 
-        assessedValue: Number(assessment.assessedValue), 
-        baseTax: Number(assessment.baseTax), 
-        exemptionPct: Number(assessment.exemptionPct || 0), 
+      const payload = { 
+        property_id: String(assessment.propertyId), 
+        financial_year: assessment.financialYear, 
+        assessed_value: Number(assessment.assessedValue), 
+        base_tax: Number(assessment.baseTax), 
+        exemption_pct: Number(assessment.exemptionPct || 0), 
         penalty: Number(assessment.penalty || 0), 
-        totalDue: Number(assessment.totalDue), 
-        status: 'DUE' as const 
+        total_due: Number(assessment.totalDue), 
+        status: 'DUE'
       }
       
-      // Save to mock service
-      mockService.assessments.create(newA)
-      
-      // Log activity
-      mockService.activities.create({
-        id: 'act' + Date.now(),
-        user_id: 'u1',
-        username: 'admin',
-        action: 'CREATE',
-        entity_type: 'assessment',
-        entity_id: newA.id,
-        entity_name: `Assessment for ${property?.address || 'Unknown'}`,
-        details: `Created assessment for FY ${newA.financialYear} with base tax $${newA.baseTax}`,
-        timestamp: new Date().toISOString(),
-        status: 'success'
+      const res = await fetch('/api/assessments', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
       })
+      
+      if (!res.ok) {
+        throw new Error(`Create failed: ${res.status} ${res.statusText}`)
+      }
+      
+      const created = await res.json()
       
       // Add to state with property address
       const newAssessment = { 
-        id: newA.id, 
-        financialYear: newA.financialYear, 
-        assessedValue: newA.assessedValue, 
-        baseTax: newA.baseTax, 
-        exemptionPct: newA.exemptionPct, 
-        penalty: newA.penalty, 
-        totalDue: newA.totalDue, 
-        status: newA.status, 
-        propertyId: newA.propertyId, 
+        id: created.assess_id || created.id, 
+        financialYear: created.financial_year, 
+        assessedValue: Number(created.assessed_value), 
+        baseTax: Number(created.base_tax), 
+        exemptionPct: Number(created.exemption_pct || 0), 
+        penalty: Number(created.penalty || 0), 
+        totalDue: Number(created.total_due), 
+        status: created.status, 
+        propertyId: created.property_id, 
         propertyAddress: property?.address || 'Unknown Address', 
-        createdAt: new Date().toISOString() 
+        createdAt: created.created_at || new Date().toISOString() 
       }
       
       setItems(prev => [newAssessment, ...prev])
@@ -158,34 +142,24 @@ export default function AssessmentsPage() {
 
   async function handleMarkPaid(id: number) {
     try {
-      const assessments = mockService.assessments.list()
-      const idx = assessments.findIndex(a => a.id === String(id))
-      if (idx >= 0) {
-        const a = assessments[idx]
-        const oldDue = a.totalDue
-        a.totalDue = 0
-        a.status = 'PAID'
-        mockService.assessments.update(a)
-        
-        // Log activity
-        const assessment = items.find(item => item.id === a.id)
-        mockService.activities.create({
-          id: 'act' + Date.now(),
-          user_id: 'u1',
-          username: 'admin',
-          action: 'UPDATE',
-          entity_type: 'assessment',
-          entity_id: a.id,
-          entity_name: `Assessment for ${assessment?.propertyAddress || 'Unknown'}`,
-          details: `Marked assessment as PAID - $${oldDue} paid`,
-          timestamp: new Date().toISOString(),
-          status: 'success'
-        })
-        
-        setItems(prev => prev.map(item => item.id === a.id ? { ...item, status: a.status, totalDue: Number(a.totalDue) } : item))
+      const res = await fetch('/api/assessments/markpaid', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ assess_id: id }) 
+      })
+      
+      if (!res.ok) {
+        throw new Error(`Mark paid failed: ${res.status} ${res.statusText}`)
       }
+      
+      // Update the local state
+      setItems(prev => prev.map(item => 
+        item.id === id ? { ...item, status: 'PAID', totalDue: 0 } : item
+      ))
+      
+      console.log('Assessment marked as paid:', id)
     } catch (e) { 
-      console.error(e) 
+      console.error('Failed to mark assessment as paid:', e) 
     }
   }
 
@@ -804,13 +778,7 @@ export default function AssessmentsPage() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={async () => {
-                                      if (!confirm('Delete this assessment? This action cannot be undone.')) return
-                                      try {
-                                        mockService.assessments.delete(String(assessment.id))
-                                        setItems(prev => prev.filter(i => i.id !== assessment.id))
-                                      } catch (err) {
-                                        console.error('Failed to delete assessment', err)
-                                      }
+                                      alert('Delete functionality not implemented yet')
                                     }}
                                     className={`
                                       p-2 rounded-xl text-sm font-medium transition-colors shadow-sm

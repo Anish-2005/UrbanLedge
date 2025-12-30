@@ -66,29 +66,7 @@ export async function POST(req: Request) {
     })
   } catch (err: any) {
     console.error('POST /api/properties error', err?.message || err)
-    // If database is not available, simulate successful creation with mock data
-    if (err?.code === 'ENOTFOUND' || 
-        err?.message?.includes('getaddrinfo ENOTFOUND') || 
-        err?.message?.includes('relation') || 
-        err?.message?.includes('does not exist') ||
-        err?.message?.includes('JWT') ||
-        err?.message?.includes('auth') ||
-        !err?.message?.includes('mock')) { // Catch any database-related errors
-      console.log('Database not available, simulating property creation with mock data')
-      const body = await req.json().catch(() => ({}))
-      const mockProperty = {
-        property_id: 'mock_' + Date.now(),
-        address: body?.address || 'Mock Property',
-        ward: body?.ward || 'Mock Ward',
-        ptype: body?.ptype || 'Residential',
-        land_area: body?.land_area || 0,
-        built_area: body?.built_area || 0,
-        usage: body?.usage || 'Residential',
-        owner_id: body?.owner_id || 1
-      }
-      return NextResponse.json(mockProperty)
-    }
-    return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
+    return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
   }
 }
 
@@ -125,29 +103,7 @@ export async function PUT(req: Request) {
     })
   } catch (err: any) {
     console.error('PUT /api/properties error', err?.message || err)
-    // If database is not available, simulate successful update with mock data
-    if (err?.code === 'ENOTFOUND' || 
-        err?.message?.includes('getaddrinfo ENOTFOUND') || 
-        err?.message?.includes('relation') || 
-        err?.message?.includes('does not exist') ||
-        err?.message?.includes('JWT') ||
-        err?.message?.includes('auth') ||
-        !err?.message?.includes('mock')) { // Catch any database-related errors
-      console.log('Database not available, simulating property update with mock data')
-      const body = await req.json().catch(() => ({}))
-      const mockProperty = {
-        property_id: body?.property_id || body?.id || 'mock_' + Date.now(),
-        address: body?.address || 'Updated Property',
-        ward: body?.ward || 'Updated Ward',
-        ptype: body?.ptype || 'Residential',
-        land_area: body?.land_area || 0,
-        built_area: body?.built_area || 0,
-        usage: body?.usage || 'Residential',
-        owner_id: 1
-      }
-      return NextResponse.json(mockProperty)
-    }
-    return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
+    return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
   }
 }
 
@@ -167,17 +123,6 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: true })
   } catch (err: any) {
     console.error('DELETE /api/properties error', err?.message || err)
-    // If database is not available, simulate successful deletion with mock data
-    if (err?.code === 'ENOTFOUND' || 
-        err?.message?.includes('getaddrinfo ENOTFOUND') || 
-        err?.message?.includes('relation') || 
-        err?.message?.includes('does not exist') ||
-        err?.message?.includes('JWT') ||
-        err?.message?.includes('auth') ||
-        !err?.message?.includes('mock')) { // Catch any database-related errors
-      console.log('Database not available, simulating property deletion with mock data')
-      return NextResponse.json({ ok: true })
-    }
-    return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
+    return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
   }
 }
