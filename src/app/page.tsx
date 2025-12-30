@@ -42,10 +42,13 @@ interface Payment {
   payment_id: string | number
   assess_id: string | number
   paid_amount: number
-  paid_on: Date
-  payment_method: string
-  transaction_ref: string
-  propertyAddress: string
+  paid_on?: Date
+  paidOn?: Date
+  payment_method?: string
+  transaction_ref?: string
+  txRef?: string
+  id?: string | number
+  propertyAddress?: string
 }
 
 export default function PrototypePage() {
@@ -447,7 +450,7 @@ export default function PrototypePage() {
                       <div className="space-y-4">
                         {assessments.map((assessment, index) => (
                           <motion.div
-                            key={assessment.assess_id ?? assessment.id ?? index}
+                            key={assessment.assess_id ?? index}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.7 + index * 0.1 }}
@@ -473,10 +476,10 @@ export default function PrototypePage() {
                               </div>
                               <div>
                                 <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                  {assessment.propertyAddress || assessment.property || 'Unknown property'}
+                                  {assessment.propertyAddress || 'Unknown property'}
                                 </div>
                                 <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                  ${' '}{(assessment.assessed_value ?? assessment.assessedValue ?? 0).toLocaleString()} •{' '}
+                                  ${' '}{(assessment.assessed_value ?? 0).toLocaleString()} •{' '}
                                   <span className={
                                     (assessment.status === 'PAID' || assessment.status === 'Paid') ? 'text-emerald-600 dark:text-emerald-400' :
                                     (assessment.status === 'OVERDUE' || assessment.status === 'Overdue') ? 'text-red-600 dark:text-red-400' :
@@ -495,7 +498,7 @@ export default function PrototypePage() {
                                 bg-blue-500 hover:bg-blue-600 text-white
                                 transition-colors duration-200
                               `}
-                              onClick={() => router.push(`/assessments?assess_id=${assessment.assess_id ?? assessment.id}`)}
+                              onClick={() => router.push(`/assessments?assess_id=${assessment.assess_id}`)}
                             >
                               View
                             </motion.button>
@@ -558,7 +561,7 @@ export default function PrototypePage() {
                               </div>
                               <div>
                                 <div className={`font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                  {payment.propertyAddress || payment.property || 'Unknown property'}
+                                  {payment.propertyAddress || 'Unknown property'}
                                 </div>
                                 <div className={`text-sm flex items-center gap-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                                   <Calendar size={14} />

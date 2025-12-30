@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { Pool } = require('pg')
-require('dotenv').config()
+const path = require('path')
+require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') })
 
 const conn = process.env.DATABASE_URL
 if (!conn) {
@@ -9,7 +10,10 @@ if (!conn) {
 }
 
 (async function(){
-  const pool = new Pool({ connectionString: conn })
+  const pool = new Pool({ 
+    connectionString: conn,
+    ssl: { rejectUnauthorized: false } // Required for Supabase SSL connections
+  })
   const client = await pool.connect()
   try {
     const res = await client.query('SELECT now() AS now, version() AS pg_version')

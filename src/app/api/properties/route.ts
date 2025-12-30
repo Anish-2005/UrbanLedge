@@ -14,6 +14,11 @@ export async function GET() {
     return NextResponse.json(res.rows)
   } catch (err: any) {
     console.error('GET /api/properties error', err?.message || err)
+    // If database is not available, return empty array so frontend falls back to mock data
+    if (err?.code === 'ENOTFOUND' || err?.message?.includes('getaddrinfo ENOTFOUND')) {
+      console.log('Database not available, returning empty array for mock fallback')
+      return NextResponse.json([])
+    }
     return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
   }
 }
@@ -62,7 +67,11 @@ export async function POST(req: Request) {
     throw e
   }
   } catch (err: any) {
-  console.error('POST /api/properties error', err?.message || err)
+    console.error('POST /api/properties error', err?.message || err)
+    // If database is not available, return appropriate error
+    if (err?.code === 'ENOTFOUND' || err?.message?.includes('getaddrinfo ENOTFOUND')) {
+      return NextResponse.json({ error: 'Database not available. Please check database configuration.' }, { status: 503 })
+    }
     return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
   }
 }
@@ -102,6 +111,10 @@ export async function PUT(req: Request) {
     }
   } catch (err: any) {
     console.error('PUT /api/properties error', err?.message || err)
+    // If database is not available, return appropriate error
+    if (err?.code === 'ENOTFOUND' || err?.message?.includes('getaddrinfo ENOTFOUND')) {
+      return NextResponse.json({ error: 'Database not available. Please check database configuration.' }, { status: 503 })
+    }
     return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
   }
 }
@@ -122,6 +135,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: true })
   } catch (err: any) {
     console.error('DELETE /api/properties error', err?.message || err)
+    // If database is not available, return appropriate error
+    if (err?.code === 'ENOTFOUND' || err?.message?.includes('getaddrinfo ENOTFOUND')) {
+      return NextResponse.json({ error: 'Database not available. Please check database configuration.' }, { status: 503 })
+    }
     return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
   }
 }

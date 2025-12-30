@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server'
 import { query, ensureTables, calculateTax } from '@/lib/db'
 
 export async function GET() {
-  await ensureTables()
-  const res = await query('SELECT * FROM assessment ORDER BY assess_id DESC')
-  return NextResponse.json(res.rows)
+  try {
+    await ensureTables()
+    const res = await query('SELECT * FROM assessment ORDER BY assess_id DESC')
+    return NextResponse.json(res.rows)
+  } catch (err: any) {
+    console.error('GET /api/assessments error', err?.message || err)
+    // If database is not available, return empty array so frontend falls back to mock data
+    if (err?.code === 'ENOTFOUND' || err?.message?.includes('getaddrinfo ENOTFOUND')) {
+      console.log('Database not available, returning empty array for mock fallback')
+      return NextResponse.json([])
+    }
+    return NextResponse.json({ error: err?.message || 'internal error' }, { status: 500 })
+  }
 }
 
 export async function POST(req: Request) {
