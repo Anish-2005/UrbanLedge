@@ -1,24 +1,20 @@
 import { NextResponse } from 'next/server'
-import { selectFrom, insertInto, updateIn, deleteFrom, ensureTables } from '@/lib/db'
+import { selectFrom, insertInto, updateIn, deleteFrom, ensureTables, query } from '@/lib/db'
 
 export async function GET() {
   try {
     await ensureTables()
-    // For Supabase, we'll use a simpler query without JOINs for now
-    // In production, you'd create RPC functions or views in Supabase
-    const res = await selectFrom('property')
-    // Transform the data to match the expected format
-    const transformedRows = res.rows.map((row: any) => ({
-      property_id: row.property_id || row.id,
-      address: row.address,
-      ward: row.ward || 'Ward 1', // Simplified - would need proper JOIN logic
-      ptype: row.ptype || 'Residential', // Simplified - would need proper JOIN logic
-      land_area: row.land_area,
-      built_area: row.built_area,
-      usage: row.usage,
-      owner_id: row.owner_id
-    }))
-    return NextResponse.json(transformedRows)
+    // Use JOIN to get ward and property type names
+    const sql = `
+      SELECT p.property_id, p.address, w.name as ward, pt.name as ptype,
+             p.land_area, p.built_area, p.usage, p.owner_id, p.created_at
+      FROM property p
+      JOIN ward w ON p.ward_id = w.ward_id
+      JOIN property_type pt ON p.ptype_id = pt.ptype_id
+      ORDER BY p.property_id
+    `
+    const result = await query(sql)
+    return NextResponse.json(result.rows)
   } catch (err: any) {
     console.error('GET /api/properties error', err?.message || err)
     return NextResponse.json({ error: err?.message || 'Database connection failed' }, { status: 500 })
@@ -40,11 +36,25 @@ export async function POST(req: Request) {
     // Use default owner_id if not provided (for demo purposes)
     const final_owner_id = owner_id || 1
 
-    // For Supabase, simplify the insertion - store ward and ptype as strings for now
+    // Look up ward_id and ptype_id
+    const wardResult = await query('SELECT ward_id FROM ward WHERE name = $1', [ward || 'Ward 1'])
+    const ptypeResult = await query('SELECT ptype_id FROM property_type WHERE name = $1', [ptype || 'Residential'])
+
+    if (wardResult.rows.length === 0) {
+      return NextResponse.json({ error: `Ward '${ward || 'Ward 1'}' not found` }, { status: 400 })
+    }
+    if (ptypeResult.rows.length === 0) {
+      return NextResponse.json({ error: `Property type '${ptype || 'Residential'}' not found` }, { status: 400 })
+    }
+
+    const ward_id = wardResult.rows[0].ward_id
+    const ptype_id = ptypeResult.rows[0].ptype_id
+
+    // Insert with foreign key IDs
     const propertyData = {
       address,
-      ward: ward || 'Ward 1',
-      ptype: ptype || 'Residential',
+      ward_id,
+      ptype_id,
       land_area: land_area || 0,
       built_area: built_area || 0,
       usage: usage || 'Residential',
@@ -54,11 +64,15 @@ export async function POST(req: Request) {
     const result = await insertInto('property', propertyData)
     const createdProperty = result.rows[0]
 
+    // Return with names for frontend compatibility
+    const wardNameResult = await query('SELECT name FROM ward WHERE ward_id = $1', [createdProperty.ward_id])
+    const ptypeNameResult = await query('SELECT name FROM property_type WHERE ptype_id = $1', [createdProperty.ptype_id])
+
     return NextResponse.json({
-      property_id: createdProperty.id || createdProperty.property_id,
+      property_id: createdProperty.property_id,
       address: createdProperty.address,
-      ward: createdProperty.ward,
-      ptype: createdProperty.ptype,
+      ward: wardNameResult.rows[0]?.name || 'Unknown',
+      ptype: ptypeNameResult.rows[0]?.name || 'Unknown',
       land_area: createdProperty.land_area,
       built_area: createdProperty.built_area,
       usage: createdProperty.usage,
@@ -78,11 +92,25 @@ export async function PUT(req: Request) {
     if (!id) return new NextResponse('property_id is required', { status: 400 })
     const { address, ward, ptype, land_area, built_area, usage } = body
 
-    // For Supabase, update the property directly
+    // Look up ward_id and ptype_id
+    const wardResult = await query('SELECT ward_id FROM ward WHERE name = $1', [ward || 'Ward 1'])
+    const ptypeResult = await query('SELECT ptype_id FROM property_type WHERE name = $1', [ptype || 'Residential'])
+
+    if (wardResult.rows.length === 0) {
+      return NextResponse.json({ error: `Ward '${ward || 'Ward 1'}' not found` }, { status: 400 })
+    }
+    if (ptypeResult.rows.length === 0) {
+      return NextResponse.json({ error: `Property type '${ptype || 'Residential'}' not found` }, { status: 400 })
+    }
+
+    const ward_id = wardResult.rows[0].ward_id
+    const ptype_id = ptypeResult.rows[0].ptype_id
+
+    // Update with foreign key IDs
     const updateData = {
       address,
-      ward: ward || 'Ward 1',
-      ptype: ptype || 'Residential',
+      ward_id,
+      ptype_id,
       land_area: land_area || 0,
       built_area: built_area || 0,
       usage: usage || 'Residential'
@@ -91,11 +119,15 @@ export async function PUT(req: Request) {
     const result = await updateIn('property', updateData, { property_id: id })
     const updatedProperty = result.rows[0]
 
+    // Return with names for frontend compatibility
+    const wardNameResult = await query('SELECT name FROM ward WHERE ward_id = $1', [updatedProperty.ward_id])
+    const ptypeNameResult = await query('SELECT name FROM property_type WHERE ptype_id = $1', [updatedProperty.ptype_id])
+
     return NextResponse.json({
-      property_id: updatedProperty.id || updatedProperty.property_id,
+      property_id: updatedProperty.property_id,
       address: updatedProperty.address,
-      ward: updatedProperty.ward,
-      ptype: updatedProperty.ptype,
+      ward: wardNameResult.rows[0]?.name || 'Unknown',
+      ptype: ptypeNameResult.rows[0]?.name || 'Unknown',
       land_area: updatedProperty.land_area,
       built_area: updatedProperty.built_area,
       usage: updatedProperty.usage,
