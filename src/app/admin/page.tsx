@@ -14,9 +14,11 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useUI } from '@/contexts/UIContext'
 
 export default function AdminPage() {
   const { theme } = useTheme()
+  const { sidebarCollapsed } = useUI()
 
   // UI state used throughout the component
   const [activeTab, setActiveTab] = useState('tax-slabs')
@@ -1400,13 +1402,13 @@ export default function AdminPage() {
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-12 gap-8">
+        <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar */}
           <motion.aside 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="col-span-12 lg:col-span-3 xl:col-span-2"
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -1414,7 +1416,7 @@ export default function AdminPage() {
           </motion.aside>
 
           {/* Main Content */}
-          <main className="col-span-12 lg:col-span-9 xl:col-span-10">
+          <main className="min-w-0 flex-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
