@@ -466,8 +466,8 @@ export default function AssessmentsPage() {
     <div className={`
       min-h-screen transition-colors duration-300
       ${theme === 'light'
-        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+        ? 'app-shell-bg text-slate-900'
+        : 'app-shell-bg text-slate-100'
       }
     `}>
       <Header />
@@ -503,7 +503,7 @@ export default function AssessmentsPage() {
               >
                 <div>
                   <h1 className={`
-                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    text-3xl font-semibold tracking-tight
                     ${theme === 'light'
                       ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
@@ -607,7 +607,7 @@ export default function AssessmentsPage() {
                     <div className="flex items-center gap-3 mb-6">
                       <div className={`
                         w-10 h-10 rounded-xl flex items-center justify-center
-                        bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg
+                        bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-lg
                       `}>
                         <Calculator size={20} />
                       </div>
@@ -710,7 +710,7 @@ export default function AssessmentsPage() {
                                       font-semibold
                                       ${theme === 'light' ? 'text-gray-900' : 'text-white'}
                                     `}>
-                                      {assessment.financialYear} • ${assessment.assessedValue?.toLocaleString()}
+                                      {assessment.financialYear} â€¢ ${assessment.assessedValue?.toLocaleString()}
                                     </div>
                                     <div className={`
                                       text-sm mt-1

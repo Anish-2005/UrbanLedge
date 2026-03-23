@@ -1,13 +1,10 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import {
-  signInWithGoogle,
-  onAuthChange,
-  auth,
-} from "@/lib/firebaseClient";
-import { LogOut } from "lucide-react";
+import { LogOut, ChevronDown } from "lucide-react";
+import { signInWithGoogle, onAuthChange, auth } from "@/lib/firebaseClient";
 import { useTheme } from "@/contexts/ThemeContext";
 import { User } from "firebase/auth";
 
@@ -22,8 +19,8 @@ export default function SignInButton() {
       setUser(u);
       if (typeof window !== "undefined") {
         if (u) {
-          u.getIdToken().then((t: string) => {
-            (window as Window & { __UL_FIREBASE_TOKEN?: string }).__UL_FIREBASE_TOKEN = t;
+          u.getIdToken().then((token: string) => {
+            (window as Window & { __UL_FIREBASE_TOKEN?: string }).__UL_FIREBASE_TOKEN = token;
           });
         } else {
           (window as Window & { __UL_FIREBASE_TOKEN?: string }).__UL_FIREBASE_TOKEN = undefined;
@@ -36,137 +33,112 @@ export default function SignInButton() {
   async function handleSignIn() {
     try {
       await signInWithGoogle();
+      setError(null);
     } catch (e) {
       console.error(e);
-      setError(
-        "Sign-in failed. Ensure Google Sign-In is enabled in your Firebase console."
-      );
+      setError("Sign-in failed. Enable Google Sign-In in Firebase console.");
     }
   }
 
   function handleSignOut() {
     if (auth) auth.signOut();
+    setDropdownOpen(false);
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-start">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={handleSignIn}
+          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+            theme === "light"
+              ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+          }`}
+        >
+          <Image
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google"
+            width={16}
+            height={16}
+          />
+          <span>Sign in</span>
+        </motion.button>
+
+        {error && (
+          <div className={`mt-1 text-xs ${theme === "light" ? "text-red-600" : "text-red-400"}`}>
+            {error}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
     <div className="relative">
-      {/* --- LOGGED IN --- */}
-      {user ? (
-        <div>
-          <motion.button
-            onClick={() => setDropdownOpen((p) => !p)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-xl border
-              transition-all duration-300 shadow-sm
-              ${
-                theme === "light"
-                  ? "bg-white border-gray-200 hover:bg-gray-50 text-gray-800"
-                  : "bg-gray-800/80 border-gray-700 hover:bg-gray-700 text-gray-100"
-              }
-            `}
+      <motion.button
+        onClick={() => setDropdownOpen((open) => !open)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition ${
+          theme === "light"
+            ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+        }`}
+      >
+        <Image
+          src={user.photoURL || "/user-avatar.png"}
+          alt="User"
+          width={28}
+          height={28}
+          className="rounded-full"
+        />
+        <span className="max-w-[90px] truncate text-sm font-medium">
+          {user.displayName?.split(" ")[0] || "User"}
+        </span>
+        <ChevronDown size={14} className={`transition ${dropdownOpen ? "rotate-180" : ""}`} />
+      </motion.button>
+
+      <AnimatePresence>
+        {dropdownOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className={`absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border shadow-lg ${
+              theme === "light" ? "border-slate-200 bg-white" : "border-slate-700 bg-slate-900"
+            }`}
           >
-            <Image
-              src={user.photoURL || "/user-avatar.png"}
-              alt="User"
-              width={28}
-              height={28}
-              className="rounded-full"
-            />
-            <span className="text-sm font-medium truncate max-w-[100px]">
-              {user.displayName?.split(" ")[0]}
-            </span>
-          </motion.button>
-
-          {/* Dropdown */}
-          <AnimatePresence>
-            {dropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-                className={`
-                  absolute right-0 mt-2 w-44 rounded-xl border shadow-lg overflow-hidden
-                  ${
-                    theme === "light"
-                      ? "bg-white border-gray-200"
-                      : "bg-gray-800 border-gray-700"
-                  }
-                `}
-              >
-                <div
-                  className={`px-4 py-2 text-xs border-b
-                    ${
-                      theme === "light"
-                        ? "text-gray-500 border-gray-100"
-                        : "text-gray-400 border-gray-700"
-                    }`}
-                >
-                  Signed in as
-                  <div
-                    className={`truncate text-sm font-medium ${
-                      theme === "light" ? "text-gray-800" : "text-gray-200"
-                    }`}
-                  >
-                    {user.email}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSignOut}
-                  className={`flex items-center gap-2 w-full px-4 py-2 text-sm transition-colors
-                    ${
-                      theme === "light"
-                        ? "text-gray-700 hover:bg-gray-50"
-                        : "text-gray-200 hover:bg-gray-700/70"
-                    }`}
-                >
-                  <LogOut size={15} />
-                  Sign out
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      ) : (
-        /* --- LOGGED OUT --- */
-        <div className="flex flex-col items-start">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleSignIn}
-            className={`
-              flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium
-              transition-all duration-300 shadow-sm
-              ${
-                theme === "light"
-                  ? "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  : "bg-gray-800/80 border-gray-700 text-gray-100 hover:bg-gray-700"
-              }
-            `}
-          >
-            <Image
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              width={18}
-              height={18}
-            />
-            <span>Sign in with Google</span>
-          </motion.button>
-
-          {error && (
             <div
-              className={`text-xs mt-1 max-w-xs ${
-                theme === "light" ? "text-red-600" : "text-red-400"
+              className={`border-b px-4 py-2 text-xs ${
+                theme === "light"
+                  ? "border-slate-100 text-slate-500"
+                  : "border-slate-700 text-slate-400"
               }`}
             >
-              {error}
+              Signed in as
+              <div className={`truncate text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-200"}`}>
+                {user.email}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            <button
+              onClick={handleSignOut}
+              className={`flex w-full items-center gap-2 px-4 py-2.5 text-sm transition ${
+                theme === "light"
+                  ? "text-slate-700 hover:bg-slate-50"
+                  : "text-slate-200 hover:bg-slate-800"
+              }`}
+            >
+              <LogOut size={15} />
+              Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

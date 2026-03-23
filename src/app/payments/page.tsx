@@ -134,7 +134,7 @@ export default function PaymentsPage() {
           a.click()
           a.remove()
           URL.revokeObjectURL(url)
-          alert('Popups are blocked. The receipt HTML was downloaded; open it and print to PDF (File → Print).')
+          alert('Popups are blocked. The receipt HTML was downloaded; open it and print to PDF (File â†’ Print).')
         } catch (err) {
           console.error('Fallback failed', err)
           alert('Unable to open receipt window. Please allow popups or check downloads.')
@@ -181,7 +181,7 @@ export default function PaymentsPage() {
       switch (method) {
         case 'CREDIT_CARD': return 'from-blue-500 to-cyan-600'
         case 'BANK_TRANSFER': return 'from-emerald-500 to-teal-600'
-        case 'UPI': return 'from-purple-500 to-pink-600'
+        case 'UPI': return 'from-slate-600 to-slate-700'
         default: return 'from-gray-500 to-gray-600'
       }
     }
@@ -396,7 +396,7 @@ export default function PaymentsPage() {
       value: '100%',
       change: '+0.5%', 
       icon: TrendingUp, 
-      gradient: 'from-purple-500 to-pink-600',
+      gradient: 'from-slate-600 to-slate-700',
       description: 'Transaction success',
       trend: 'up'
     },
@@ -424,8 +424,8 @@ export default function PaymentsPage() {
     <div className={`
       min-h-screen transition-colors duration-300
       ${theme === 'light'
-        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+        ? 'app-shell-bg text-slate-900'
+        : 'app-shell-bg text-slate-100'
       }
     `}>
       <Header />
@@ -460,7 +460,7 @@ export default function PaymentsPage() {
               >
                 <div>
                   <h1 className={`
-                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    text-3xl font-semibold tracking-tight
                     ${theme === 'light'
                       ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
@@ -670,7 +670,7 @@ export default function PaymentsPage() {
                                       font-semibold
                                       ${theme === 'light' ? 'text-gray-900' : 'text-white'}
                                     `}>
-                                      ${payment.paidAmount} • {payment.method.replace('_', ' ')}
+                                      ${payment.paidAmount} â€¢ {payment.method.replace('_', ' ')}
                                     </div>
                                     <div className={`
                                       text-sm mt-1

@@ -168,7 +168,7 @@ export default function PrototypePage() {
       value: '84%', 
       change: '+8.1%', 
       icon: Target, 
-      gradient: 'from-purple-500 to-pink-600',
+      gradient: 'from-slate-600 to-slate-700',
       description: 'Efficiency metric',
       trend: 'up'
     }
@@ -195,8 +195,8 @@ export default function PrototypePage() {
     <div className={`
       min-h-screen transition-colors duration-300
       ${theme === 'light'
-        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+        ? 'app-shell-bg text-slate-900'
+        : 'app-shell-bg text-slate-100'
       }
     `}>
       <Header />
@@ -232,7 +232,7 @@ export default function PrototypePage() {
               >
                 <div>
                   <h1 className={`
-                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    text-3xl font-semibold tracking-tight
                     ${theme === 'light'
                       ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
@@ -361,7 +361,7 @@ export default function PrototypePage() {
                       </h2>
                       <div className={`
                         w-10 h-10 rounded-xl flex items-center justify-center
-                        bg-gradient-to-r from-blue-500 to-purple-600 text-white
+                        bg-gradient-to-r from-blue-600 to-slate-700 text-white
                       `}>
                         <FileText size={20} />
                       </div>
@@ -371,7 +371,7 @@ export default function PrototypePage() {
                         {[
                           { icon: FileText, label: 'Create Assessment', description: 'Generate new property assessment', gradient: 'from-blue-500 to-cyan-600', href: '/assessments' },
                           { icon: DollarSign, label: 'Process Payment', description: 'Accept tax payments', gradient: 'from-emerald-500 to-teal-600', href: '/payments' },
-                          { icon: Building, label: 'Add Property', description: 'Register new property', gradient: 'from-purple-500 to-pink-600', href: '/properties' },
+                          { icon: Building, label: 'Add Property', description: 'Register new property', gradient: 'from-slate-600 to-slate-700', href: '/properties' },
                           { icon: Users, label: 'Manage Taxpayers', description: 'Update taxpayer information', gradient: 'from-amber-500 to-orange-600', href: '/admin' }
                         ].map((action, index) => (
                           <motion.button
@@ -479,7 +479,7 @@ export default function PrototypePage() {
                                   {assessment.propertyAddress || 'Unknown property'}
                                 </div>
                                 <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                  ${' '}{(assessment.assessed_value ?? 0).toLocaleString()} •{' '}
+                                  ${' '}{(assessment.assessed_value ?? 0).toLocaleString()} â€¢{' '}
                                   <span className={
                                     (assessment.status === 'PAID' || assessment.status === 'Paid') ? 'text-emerald-600 dark:text-emerald-400' :
                                     (assessment.status === 'OVERDUE' || assessment.status === 'Overdue') ? 'text-red-600 dark:text-red-400' :
@@ -565,7 +565,7 @@ export default function PrototypePage() {
                                 </div>
                                 <div className={`text-sm flex items-center gap-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                                   <Calendar size={14} />
-                                  {(payment.paid_on ? new Date(payment.paid_on) : payment.paidOn ? new Date(payment.paidOn) : new Date()).toLocaleDateString()} • {payment.transaction_ref ?? payment.txRef}
+                                  {(payment.paid_on ? new Date(payment.paid_on) : payment.paidOn ? new Date(payment.paidOn) : new Date()).toLocaleDateString()} â€¢ {payment.transaction_ref ?? payment.txRef}
                                 </div>
                               </div>
                             </div>
@@ -610,7 +610,7 @@ export default function PrototypePage() {
                     </h2>
                     <div className={`
                       w-10 h-10 rounded-xl flex items-center justify-center
-                      bg-gradient-to-r from-purple-500 to-pink-600 text-white
+                      bg-gradient-to-r from-slate-600 to-slate-700 text-white
                     `}>
                       <MapPin size={20} />
                     </div>
@@ -645,7 +645,7 @@ export default function PrototypePage() {
                             <div className="font-semibold text-white/90">{ward.name}</div>
                             <div className="text-2xl font-bold mt-1">{ward.amount}</div>
                             <div className="text-white/70 text-sm mt-1">
-                              {ward.properties} properties • {ward.progress}% collected
+                              {ward.properties} properties â€¢ {ward.progress}% collected
                             </div>
                           </div>
                           <motion.button

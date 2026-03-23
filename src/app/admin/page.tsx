@@ -215,7 +215,7 @@ export default function AdminPage() {
       value: exemptions.filter(e => e.active !== false).length.toString(),
       change: '+0%', 
       icon: Percent, 
-      gradient: 'from-purple-500 to-pink-600',
+      gradient: 'from-slate-600 to-slate-700',
       description: 'Discount categories',
       trend: 'stable'
     },
@@ -268,12 +268,12 @@ export default function AdminPage() {
                 {slab.property_type_name || `Type ${slab.ptype_id}`}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                Area: {slab.min_area}-{slab.max_area} m²
+                Area: {slab.min_area}-{slab.max_area} mÂ²
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/m²</div>
+            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/mÂ²</div>
             <div className={`text-xs px-2 py-1 rounded-full ${
               slab.active 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
@@ -545,7 +545,7 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Min Area (m²)
+                  Min Area (mÂ²)
                 </label>
                 <input
                   type="number"
@@ -564,7 +564,7 @@ export default function AdminPage() {
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Max Area (m²)
+                  Max Area (mÂ²)
                 </label>
                 <input
                   type="number"
@@ -584,7 +584,7 @@ export default function AdminPage() {
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                Base Rate per m² ($)
+                Base Rate per mÂ² ($)
               </label>
               <input
                 type="number"
@@ -1041,7 +1041,7 @@ export default function AdminPage() {
             action: slab.slab_id ? 'UPDATE' : 'CREATE',
             entity_type: 'tax_slab',
             record_id: slab.slab_id || slab.id || 'new',
-            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || '∞'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
+            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || 'âˆž'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
           })
         })
         
@@ -1394,8 +1394,8 @@ export default function AdminPage() {
     <div className={`
       min-h-screen transition-colors duration-300
       ${theme === 'light'
-        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+        ? 'app-shell-bg text-slate-900'
+        : 'app-shell-bg text-slate-100'
       }
     `}>
       <Header {...({ mobileOpen, setMobileOpen } as any)} />
@@ -1426,7 +1426,7 @@ export default function AdminPage() {
               {dbStatus && (!dbStatus.enabled || !dbStatus.connected) && (
                 <div className="p-3 rounded-md mb-4 border border-yellow-400 bg-yellow-50 text-yellow-900">
                   <strong>Database unavailable:</strong>
-                  {!dbStatus.enabled && <span> No DATABASE_URL configured — the app is running with local mock data.</span>}
+                  {!dbStatus.enabled && <span> No DATABASE_URL configured â€” the app is running with local mock data.</span>}
                   {dbStatus.enabled && !dbStatus.connected && <span> The configured database is not reachable (Render may show "Free database expired"). Please upgrade the database or update the connection string. Check <em>Logs</em> or the <em>Render</em> dashboard for details.</span>}
                   {dbStatus.error && <div className="mt-1 text-sm text-yellow-800">{dbStatus.error}</div>}
                 </div>
@@ -1440,7 +1440,7 @@ export default function AdminPage() {
               >
                 <div>
                   <h1 className={`
-                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    text-3xl font-semibold tracking-tight
                     ${theme === 'light'
                       ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
@@ -1735,7 +1735,7 @@ export default function AdminPage() {
                                     {user.full_name || user.username}
                                   </div>
                                   <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                    {user.username} • {user.roles?.join(', ') || 'No roles'}
+                                    {user.username} â€¢ {user.roles?.join(', ') || 'No roles'}
                                   </div>
                                 </div>
                               </div>
@@ -1759,7 +1759,7 @@ export default function AdminPage() {
                               </div>
                             </div>
                             <div className="text-sm text-gray-500">
-                              {user.email} • {user.status}
+                              {user.email} â€¢ {user.status}
                             </div>
                           </div>
                         ))}
@@ -1976,7 +1976,7 @@ export default function AdminPage() {
                                       {activity.username}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      •
+                                      â€¢
                                     </span>
                                     <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
                                       activity.action === 'CREATE' ? 'bg-green-100 text-green-700' :
@@ -1987,7 +1987,7 @@ export default function AdminPage() {
                                       {activity.action}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      •
+                                      â€¢
                                     </span>
                                     <span className={`text-sm capitalize ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
                                       {activity.entity_type.replace('_', ' ')}

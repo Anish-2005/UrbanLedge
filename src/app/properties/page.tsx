@@ -175,7 +175,7 @@ export default function PropertiesPage() {
       })(),
       change: '+0%', 
       icon: Target, 
-      gradient: 'from-purple-500 to-pink-600',
+      gradient: 'from-slate-600 to-slate-700',
       description: 'Coverage areas',
       trend: 'stable'
     },
@@ -183,11 +183,11 @@ export default function PropertiesPage() {
       label: 'Avg. Land Area', 
       value: (() => {
         try {
-          if (!items || items.length === 0) return '0m²'
+          if (!items || items.length === 0) return '0mÂ²'
           const sum = items.reduce((s, it) => s + (Number(it.landArea ?? it.land_area ?? 0) || 0), 0)
           const avg = Math.round(sum / items.length)
-          return `${avg}m²`
-        } catch { return '0m²' }
+          return `${avg}mÂ²`
+        } catch { return '0mÂ²' }
       })(),
       change: '+1.2%', 
       icon: SquareStack, 
@@ -229,7 +229,7 @@ export default function PropertiesPage() {
                 text-xs font-medium uppercase tracking-wide
                 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
               `}>
-                {property.ptype} • {property.usage}
+                {property.ptype} â€¢ {property.usage}
               </span>
             </div>
 
@@ -254,11 +254,11 @@ export default function PropertiesPage() {
             <div className="flex items-center gap-6 text-sm">
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Land Area</div>
-                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.landArea}m²</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.landArea}mÂ²</div>
               </div>
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Built Area</div>
-                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.builtArea}m²</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.builtArea}mÂ²</div>
               </div>
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Last Assessed</div>
@@ -312,8 +312,8 @@ export default function PropertiesPage() {
     <div className={`
       min-h-screen transition-colors duration-300
       ${theme === 'light'
-        ? 'bg-gradient-to-br from-white via-sky-50 to-slate-50 text-slate-900'
-        : 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 text-white'
+        ? 'app-shell-bg text-slate-900'
+        : 'app-shell-bg text-slate-100'
       }
     `}>
       <Header />
@@ -349,7 +349,7 @@ export default function PropertiesPage() {
               >
                 <div>
                   <h1 className={`
-                    text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                    text-3xl font-semibold tracking-tight
                     ${theme === 'light'
                       ? 'from-slate-900 to-slate-700'
                       : 'from-white to-gray-300'
@@ -601,7 +601,7 @@ export default function PropertiesPage() {
                       </div>
                       <div>
                         <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          Land Area (m²)
+                          Land Area (mÂ²)
                         </label>
                         <input
                           type="number"
@@ -619,7 +619,7 @@ export default function PropertiesPage() {
                       </div>
                       <div>
                         <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          Built Area (m²)
+                          Built Area (mÂ²)
                         </label>
                         <input
                           type="number"
