@@ -52,12 +52,10 @@ export default function Header() {
           : "border-slate-700/70 bg-slate-950/70"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 w-full items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="group flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-              <Image src="/urbanledge.png" alt="UrbanLedge" width={36} height={36} priority />
-            </span>
+            <Image src="/urbanledge.png" alt="UrbanLedge" width={40} height={40} priority className="h-10 w-10 object-contain" />
             <span className="min-w-0">
               <span className={`block truncate text-base font-semibold tracking-tight ${theme === "light" ? "text-slate-900" : "text-slate-100"}`}>
                 UrbanLedge

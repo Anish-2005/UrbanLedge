@@ -431,7 +431,7 @@ export default function PaymentsPage() {
       }
     `}>
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar */}
           <motion.aside 

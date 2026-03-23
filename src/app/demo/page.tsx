@@ -33,7 +33,7 @@ export default function PrototypePage() {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto mb-8"
+        className="mb-8 w-full"
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <div>
@@ -67,7 +67,7 @@ export default function PrototypePage() {
       </motion.header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         {/* Stats Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
