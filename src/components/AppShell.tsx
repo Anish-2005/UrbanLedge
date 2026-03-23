@@ -3,7 +3,6 @@
 import React from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
-import SignInButton from './SignInButton'
 
 type Props = {
   children: React.ReactNode
@@ -11,12 +10,11 @@ type Props = {
 
 export default function AppShell({ children }: Props) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen app-shell-bg">
+      <div className="border-b border-slate-200/80 dark:border-slate-700/70">
         <Header />
-        <div className="mr-4 hidden md:block"><SignInButton /></div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-12 gap-6 py-8">
           <aside className="col-span-12 md:col-span-3 lg:col-span-2">
             <Sidebar />

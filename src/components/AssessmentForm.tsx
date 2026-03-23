@@ -40,24 +40,26 @@ export default function AssessmentForm({ initial = {}, onSave }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-4">
       <div>
-        <label className="block text-sm text-gray-700">Financial Year</label>
-        <input value={financialYear} onChange={e => setFinancialYear(e.target.value)} className="mt-1 block w-full border rounded p-2" />
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Financial Year</label>
+        <input value={financialYear} onChange={e => setFinancialYear(e.target.value)} className="control-input" />
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700">Assessed Value</label>
-        <input type="number" value={assessedValue} onChange={e => setAssessedValue(Number(e.target.value))} className="mt-1 block w-full border rounded p-2" />
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Assessed Value</label>
+        <input type="number" value={assessedValue} onChange={e => setAssessedValue(Number(e.target.value))} className="control-input" />
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700">Exemption (%)</label>
-        <input type="number" value={exemptionPct} onChange={e => setExemptionPct(Number(e.target.value))} className="mt-1 block w-full border rounded p-2" />
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Exemption (%)</label>
+        <input type="number" value={exemptionPct} onChange={e => setExemptionPct(Number(e.target.value))} className="control-input" />
       </div>
 
       <div className="flex items-center gap-2">
-        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
+        <button type="submit" className="btn-primary px-4 py-2">
+          Save
+        </button>
       </div>
     </form>
   )
