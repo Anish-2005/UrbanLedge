@@ -19,7 +19,7 @@ export default function AppShell({ children }: Props) {
       </div>
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
         <div className="flex flex-col gap-6 py-8 lg:flex-row">
-          <aside className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}>
+          <aside className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}>
             <Sidebar />
           </aside>
           <main className="min-w-0 flex-1">

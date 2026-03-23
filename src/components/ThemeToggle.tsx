@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -12,7 +12,7 @@ export default function ThemeToggle() {
     <motion.button
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.95 }}
-      onClick={toggleTheme}
+      onClick={(event) => toggleTheme({ x: event.clientX, y: event.clientY })}
       className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
         theme === 'light'
           ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
@@ -21,7 +21,18 @@ export default function ThemeToggle() {
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={theme}
+          initial={{ opacity: 0, y: 8, rotate: -20 }}
+          animate={{ opacity: 1, y: 0, rotate: 0 }}
+          exit={{ opacity: 0, y: -8, rotate: 20 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="inline-flex"
+        >
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+        </motion.span>
+      </AnimatePresence>
       <span className="hidden sm:inline">{theme === 'light' ? 'Dark' : 'Light'}</span>
     </motion.button>
   )

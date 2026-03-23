@@ -210,7 +210,7 @@ export default function PrototypePage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -478,7 +478,7 @@ export default function PrototypePage() {
                                   {assessment.propertyAddress || 'Unknown property'}
                                 </div>
                                 <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                  ${' '}{(assessment.assessed_value ?? 0).toLocaleString()} â€¢{' '}
+                                  ${' '}{(assessment.assessed_value ?? 0).toLocaleString()} Ã¢â‚¬Â¢{' '}
                                   <span className={
                                     (assessment.status === 'PAID' || assessment.status === 'Paid') ? 'text-emerald-600 dark:text-emerald-400' :
                                     (assessment.status === 'OVERDUE' || assessment.status === 'Overdue') ? 'text-red-600 dark:text-red-400' :
@@ -564,7 +564,7 @@ export default function PrototypePage() {
                                 </div>
                                 <div className={`text-sm flex items-center gap-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                                   <Calendar size={14} />
-                                  {(payment.paid_on ? new Date(payment.paid_on) : payment.paidOn ? new Date(payment.paidOn) : new Date()).toLocaleDateString()} â€¢ {payment.transaction_ref ?? payment.txRef}
+                                  {(payment.paid_on ? new Date(payment.paid_on) : payment.paidOn ? new Date(payment.paidOn) : new Date()).toLocaleDateString()} Ã¢â‚¬Â¢ {payment.transaction_ref ?? payment.txRef}
                                 </div>
                               </div>
                             </div>
@@ -644,7 +644,7 @@ export default function PrototypePage() {
                             <div className="font-semibold text-white/90">{ward.name}</div>
                             <div className="text-2xl font-bold mt-1">{ward.amount}</div>
                             <div className="text-white/70 text-sm mt-1">
-                              {ward.properties} properties â€¢ {ward.progress}% collected
+                              {ward.properties} properties Ã¢â‚¬Â¢ {ward.progress}% collected
                             </div>
                           </div>
                           <motion.button

@@ -37,19 +37,17 @@ export default function SidebarNav() {
     <motion.nav
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
-      className={`hidden rounded-2xl border p-2 md:block ${
+      className={`hidden border md:block ${sidebarCollapsed ? 'rounded-xl p-1.5' : 'rounded-2xl p-2'} ${
         theme === 'light'
           ? 'border-slate-200 bg-white shadow-sm'
           : 'border-slate-700 bg-slate-900/70 shadow-black/30'
       }`}
     >
-      <div
-        className={`mb-2 pt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 ${
-          sidebarCollapsed ? 'px-0 text-center' : 'px-3'
-        }`}
-      >
-        {sidebarCollapsed ? 'UL' : 'Navigation'}
-      </div>
+      {!sidebarCollapsed && (
+        <div className="mb-2 px-3 pt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+          Navigation
+        </div>
+      )}
 
       <div className="space-y-1.5">
         {navigation.map((item, index) => {
@@ -66,7 +64,7 @@ export default function SidebarNav() {
                 href={item.href}
                 title={sidebarCollapsed ? item.name : undefined}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                  sidebarCollapsed ? 'justify-center px-2' : ''
+                  sidebarCollapsed ? 'justify-center px-1.5 py-2' : ''
                 } ${
                   active
                     ? 'bg-blue-600 text-white shadow-sm'
@@ -76,7 +74,7 @@ export default function SidebarNav() {
                 }`}
               >
                 <item.icon
-                  size={18}
+                  size={sidebarCollapsed ? 17 : 18}
                   className={active ? 'text-white' : theme === 'light' ? 'text-slate-500' : 'text-slate-400'}
                 />
                 {!sidebarCollapsed && <span>{item.name}</span>}

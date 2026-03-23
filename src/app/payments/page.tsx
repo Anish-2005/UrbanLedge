@@ -136,7 +136,7 @@ export default function PaymentsPage() {
           a.click()
           a.remove()
           URL.revokeObjectURL(url)
-          alert('Popups are blocked. The receipt HTML was downloaded; open it and print to PDF (File â†’ Print).')
+          alert('Popups are blocked. The receipt HTML was downloaded; open it and print to PDF (File Ã¢â€ â€™ Print).')
         } catch (err) {
           console.error('Fallback failed', err)
           alert('Unable to open receipt window. Please allow popups or check downloads.')
@@ -438,7 +438,7 @@ export default function PaymentsPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -669,7 +669,7 @@ export default function PaymentsPage() {
                                       font-semibold
                                       ${theme === 'light' ? 'text-gray-900' : 'text-white'}
                                     `}>
-                                      ${payment.paidAmount} â€¢ {payment.method.replace('_', ' ')}
+                                      ${payment.paidAmount} Ã¢â‚¬Â¢ {payment.method.replace('_', ' ')}
                                     </div>
                                     <div className={`
                                       text-sm mt-1

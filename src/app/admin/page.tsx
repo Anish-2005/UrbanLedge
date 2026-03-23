@@ -269,12 +269,12 @@ export default function AdminPage() {
                 {slab.property_type_name || `Type ${slab.ptype_id}`}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                Area: {slab.min_area}-{slab.max_area} mÃ‚Â²
+                Area: {slab.min_area}-{slab.max_area} mÃƒâ€šÃ‚Â²
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/mÃ‚Â²</div>
+            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/mÃƒâ€šÃ‚Â²</div>
             <div className={`text-xs px-2 py-1 rounded-full ${
               slab.active 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
@@ -546,7 +546,7 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Min Area (mÃ‚Â²)
+                  Min Area (mÃƒâ€šÃ‚Â²)
                 </label>
                 <input
                   type="number"
@@ -565,7 +565,7 @@ export default function AdminPage() {
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Max Area (mÃ‚Â²)
+                  Max Area (mÃƒâ€šÃ‚Â²)
                 </label>
                 <input
                   type="number"
@@ -585,7 +585,7 @@ export default function AdminPage() {
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                Base Rate per mÃ‚Â² ($)
+                Base Rate per mÃƒâ€šÃ‚Â² ($)
               </label>
               <input
                 type="number"
@@ -1042,7 +1042,7 @@ export default function AdminPage() {
             action: slab.slab_id ? 'UPDATE' : 'CREATE',
             entity_type: 'tax_slab',
             record_id: slab.slab_id || slab.id || 'new',
-            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || 'Ã¢Ë†Å¾'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
+            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || 'ÃƒÂ¢Ã‹â€ Ã…Â¾'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
           })
         })
         
@@ -1408,7 +1408,7 @@ export default function AdminPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -1733,7 +1733,7 @@ export default function AdminPage() {
                                     {user.full_name || user.username}
                                   </div>
                                   <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                    {user.username} Ã¢â‚¬Â¢ {user.roles?.join(', ') || 'No roles'}
+                                    {user.username} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {user.roles?.join(', ') || 'No roles'}
                                   </div>
                                 </div>
                               </div>
@@ -1757,7 +1757,7 @@ export default function AdminPage() {
                               </div>
                             </div>
                             <div className="text-sm text-gray-500">
-                              {user.email} Ã¢â‚¬Â¢ {user.status}
+                              {user.email} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {user.status}
                             </div>
                           </div>
                         ))}
@@ -1974,7 +1974,7 @@ export default function AdminPage() {
                                       {activity.username}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      Ã¢â‚¬Â¢
+                                      ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢
                                     </span>
                                     <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
                                       activity.action === 'CREATE' ? 'bg-green-100 text-green-700' :
@@ -1985,7 +1985,7 @@ export default function AdminPage() {
                                       {activity.action}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      Ã¢â‚¬Â¢
+                                      ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢
                                     </span>
                                     <span className={`text-sm capitalize ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
                                       {activity.entity_type.replace('_', ' ')}

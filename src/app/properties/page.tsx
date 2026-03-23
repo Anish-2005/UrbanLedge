@@ -185,11 +185,11 @@ export default function PropertiesPage() {
       label: 'Avg. Land Area', 
       value: (() => {
         try {
-          if (!items || items.length === 0) return '0mÂ²'
+          if (!items || items.length === 0) return '0mÃ‚Â²'
           const sum = items.reduce((s, it) => s + (Number(it.landArea ?? it.land_area ?? 0) || 0), 0)
           const avg = Math.round(sum / items.length)
-          return `${avg}mÂ²`
-        } catch { return '0mÂ²' }
+          return `${avg}mÃ‚Â²`
+        } catch { return '0mÃ‚Â²' }
       })(),
       change: '+1.2%', 
       icon: SquareStack, 
@@ -231,7 +231,7 @@ export default function PropertiesPage() {
                 text-xs font-medium uppercase tracking-wide
                 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
               `}>
-                {property.ptype} â€¢ {property.usage}
+                {property.ptype} Ã¢â‚¬Â¢ {property.usage}
               </span>
             </div>
 
@@ -256,11 +256,11 @@ export default function PropertiesPage() {
             <div className="flex items-center gap-6 text-sm">
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Land Area</div>
-                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.landArea}mÂ²</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.landArea}mÃ‚Â²</div>
               </div>
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Built Area</div>
-                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.builtArea}mÂ²</div>
+                <div className={theme === 'light' ? 'font-semibold text-gray-900' : 'font-semibold text-white'}>{property.builtArea}mÃ‚Â²</div>
               </div>
               <div>
                 <div className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Last Assessed</div>
@@ -327,7 +327,7 @@ export default function PropertiesPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -600,7 +600,7 @@ export default function PropertiesPage() {
                       </div>
                       <div>
                         <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          Land Area (mÂ²)
+                          Land Area (mÃ‚Â²)
                         </label>
                         <input
                           type="number"
@@ -618,7 +618,7 @@ export default function PropertiesPage() {
                       </div>
                       <div>
                         <label className={`block text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          Built Area (mÂ²)
+                          Built Area (mÃ‚Â²)
                         </label>
                         <input
                           type="number"

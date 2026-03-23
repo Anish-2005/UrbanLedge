@@ -481,7 +481,7 @@ export default function AssessmentsPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-24' : 'lg:w-72'}`}
+            className={`hidden shrink-0 transition-[width] duration-300 lg:block ${sidebarCollapsed ? 'lg:w-14' : 'lg:w-72'}`}
           >
             <nav className="sticky top-20">
               <SidebarNav />
@@ -709,7 +709,7 @@ export default function AssessmentsPage() {
                                       font-semibold
                                       ${theme === 'light' ? 'text-gray-900' : 'text-white'}
                                     `}>
-                                      {assessment.financialYear} â€¢ ${assessment.assessedValue?.toLocaleString()}
+                                      {assessment.financialYear} Ã¢â‚¬Â¢ ${assessment.assessedValue?.toLocaleString()}
                                     </div>
                                     <div className={`
                                       text-sm mt-1
