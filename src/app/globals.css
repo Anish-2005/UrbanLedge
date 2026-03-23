@@ -46,7 +46,7 @@ html.dark {
   --shadow-lg: 0 18px 42px rgb(0 0 0 / 0.4), 0 4px 8px rgb(0 0 0 / 0.3);
 }
 
-@theme inline {
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
