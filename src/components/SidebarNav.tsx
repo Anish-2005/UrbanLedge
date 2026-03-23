@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import type { LucideProps } from 'lucide-react'
 import { Home, MapPin, FileText, CreditCard, Settings } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useUI } from '@/contexts/UIContext'
 
 type NavItem = {
   name: string
@@ -29,6 +30,7 @@ function isActive(pathname: string, href: string) {
 
 export default function SidebarNav() {
   const { theme } = useTheme()
+  const { sidebarCollapsed } = useUI()
   const pathname = usePathname()
 
   return (
@@ -41,8 +43,12 @@ export default function SidebarNav() {
           : 'border-slate-700 bg-slate-900/70 shadow-black/30'
       }`}
     >
-      <div className="mb-2 px-3 pt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
-        Navigation
+      <div
+        className={`mb-2 pt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 ${
+          sidebarCollapsed ? 'px-0 text-center' : 'px-3'
+        }`}
+      >
+        {sidebarCollapsed ? 'UL' : 'Navigation'}
       </div>
 
       <div className="space-y-1.5">
@@ -58,7 +64,10 @@ export default function SidebarNav() {
             >
               <Link
                 href={item.href}
+                title={sidebarCollapsed ? item.name : undefined}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  sidebarCollapsed ? 'justify-center px-2' : ''
+                } ${
                   active
                     ? 'bg-blue-600 text-white shadow-sm'
                     : theme === 'light'
@@ -70,8 +79,8 @@ export default function SidebarNav() {
                   size={18}
                   className={active ? 'text-white' : theme === 'light' ? 'text-slate-500' : 'text-slate-400'}
                 />
-                <span>{item.name}</span>
-                {active && <span className="ml-auto h-2 w-2 rounded-full bg-white/90" />}
+                {!sidebarCollapsed && <span>{item.name}</span>}
+                {active && !sidebarCollapsed && <span className="ml-auto h-2 w-2 rounded-full bg-white/90" />}
               </Link>
             </motion.div>
           )

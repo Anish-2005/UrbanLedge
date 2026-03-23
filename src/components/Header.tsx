@@ -3,12 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Menu, X, Home, MapPin, FileText, CreditCard, Settings } from "lucide-react";
+import { Search, Bell, Menu, X, Home, MapPin, FileText, CreditCard, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import SignInButton from "./SignInButton";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useUI } from "@/contexts/UIContext";
 
 type NavItem = {
   name: string;
@@ -31,6 +32,7 @@ function isActive(pathname: string, href: string) {
 
 export default function Header() {
   const { theme } = useTheme();
+  const { sidebarCollapsed, toggleSidebar } = useUI();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -118,6 +120,20 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={toggleSidebar}
+            className={`hidden rounded-xl border p-2.5 transition lg:inline-flex ${
+              theme === "light"
+                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+            }`}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </motion.button>
+
           <motion.button
             whileTap={{ scale: 0.96 }}
             className={`relative hidden rounded-xl border p-2.5 transition md:inline-flex ${
