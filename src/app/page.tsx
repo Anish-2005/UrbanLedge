@@ -233,10 +233,7 @@ export default function PrototypePage() {
                 <div>
                   <h1 className={`
                     text-3xl font-semibold tracking-tight
-                    ${theme === 'light'
-                      ? 'from-slate-900 to-slate-700'
-                      : 'from-white to-gray-300'
-                    }
+                    ${theme === 'light' ? 'text-slate-900' : 'text-slate-100'}
                   `}>
                     Dashboard Overview
                   </h1>

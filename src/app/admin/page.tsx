@@ -19,7 +19,6 @@ export default function AdminPage() {
   const { theme } = useTheme()
 
   // UI state used throughout the component
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('tax-slabs')
 
   // Data states
@@ -268,12 +267,12 @@ export default function AdminPage() {
                 {slab.property_type_name || `Type ${slab.ptype_id}`}
               </div>
               <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                Area: {slab.min_area}-{slab.max_area} mÂ²
+                Area: {slab.min_area}-{slab.max_area} mÃ‚Â²
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/mÂ²</div>
+            <div className="text-lg font-bold text-indigo-600">${slab.base_rate_per_sq_m}/mÃ‚Â²</div>
             <div className={`text-xs px-2 py-1 rounded-full ${
               slab.active 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
@@ -545,7 +544,7 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Min Area (mÂ²)
+                  Min Area (mÃ‚Â²)
                 </label>
                 <input
                   type="number"
@@ -564,7 +563,7 @@ export default function AdminPage() {
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                  Max Area (mÂ²)
+                  Max Area (mÃ‚Â²)
                 </label>
                 <input
                   type="number"
@@ -584,7 +583,7 @@ export default function AdminPage() {
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                Base Rate per mÂ² ($)
+                Base Rate per mÃ‚Â² ($)
               </label>
               <input
                 type="number"
@@ -1041,7 +1040,7 @@ export default function AdminPage() {
             action: slab.slab_id ? 'UPDATE' : 'CREATE',
             entity_type: 'tax_slab',
             record_id: slab.slab_id || slab.id || 'new',
-            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || 'âˆž'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
+            description: `${slab.slab_id ? 'Updated' : 'Created'} tax slab: ${slab.min_area}-${slab.max_area || 'Ã¢Ë†Å¾'} sq m @ $${slab.base_rate_per_sq_m}/sq m`
           })
         })
         
@@ -1398,7 +1397,7 @@ export default function AdminPage() {
         : 'app-shell-bg text-slate-100'
       }
     `}>
-      <Header {...({ mobileOpen, setMobileOpen } as any)} />
+      <Header />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-12 gap-8">
@@ -1410,7 +1409,7 @@ export default function AdminPage() {
             className="col-span-12 lg:col-span-3 xl:col-span-2"
           >
             <nav className="sticky top-20">
-              <SidebarNav {...({ mobileOpen, setMobileOpen } as any)} />
+              <SidebarNav />
             </nav>
           </motion.aside>
 
@@ -1426,7 +1425,7 @@ export default function AdminPage() {
               {dbStatus && (!dbStatus.enabled || !dbStatus.connected) && (
                 <div className="p-3 rounded-md mb-4 border border-yellow-400 bg-yellow-50 text-yellow-900">
                   <strong>Database unavailable:</strong>
-                  {!dbStatus.enabled && <span> No DATABASE_URL configured â€” the app is running with local mock data.</span>}
+                  {!dbStatus.enabled && <span> No DATABASE_URL configured - the app is running with local mock data.</span>}
                   {dbStatus.enabled && !dbStatus.connected && <span> The configured database is not reachable (Render may show "Free database expired"). Please upgrade the database or update the connection string. Check <em>Logs</em> or the <em>Render</em> dashboard for details.</span>}
                   {dbStatus.error && <div className="mt-1 text-sm text-yellow-800">{dbStatus.error}</div>}
                 </div>
@@ -1441,10 +1440,7 @@ export default function AdminPage() {
                 <div>
                   <h1 className={`
                     text-3xl font-semibold tracking-tight
-                    ${theme === 'light'
-                      ? 'from-slate-900 to-slate-700'
-                      : 'from-white to-gray-300'
-                    }
+                    ${theme === 'light' ? 'text-slate-900' : 'text-slate-100'}
                   `}>
                     Admin Panel
                   </h1>
@@ -1735,7 +1731,7 @@ export default function AdminPage() {
                                     {user.full_name || user.username}
                                   </div>
                                   <div className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                    {user.username} â€¢ {user.roles?.join(', ') || 'No roles'}
+                                    {user.username} Ã¢â‚¬Â¢ {user.roles?.join(', ') || 'No roles'}
                                   </div>
                                 </div>
                               </div>
@@ -1759,7 +1755,7 @@ export default function AdminPage() {
                               </div>
                             </div>
                             <div className="text-sm text-gray-500">
-                              {user.email} â€¢ {user.status}
+                              {user.email} Ã¢â‚¬Â¢ {user.status}
                             </div>
                           </div>
                         ))}
@@ -1976,7 +1972,7 @@ export default function AdminPage() {
                                       {activity.username}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      â€¢
+                                      Ã¢â‚¬Â¢
                                     </span>
                                     <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
                                       activity.action === 'CREATE' ? 'bg-green-100 text-green-700' :
@@ -1987,7 +1983,7 @@ export default function AdminPage() {
                                       {activity.action}
                                     </span>
                                     <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                      â€¢
+                                      Ã¢â‚¬Â¢
                                     </span>
                                     <span className={`text-sm capitalize ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
                                       {activity.entity_type.replace('_', ' ')}
