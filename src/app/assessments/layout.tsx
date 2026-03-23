@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DEFAULT_OG_IMAGE } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Assessments - Property Tax Assessment Management',
@@ -17,11 +18,17 @@ export const metadata: Metadata = {
     title: 'Assessments - Property Tax Assessment Management',
     description: 'Property tax assessment management system with automated calculations and comprehensive records.',
     type: 'website',
+    url: '/assessments',
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Assessments - Property Tax Assessment Management',
     description: 'Property tax assessment management system with automated calculations and comprehensive records.',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: '/assessments',
   },
 }
 

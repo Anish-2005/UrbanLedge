@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DEFAULT_OG_IMAGE } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Payments - Property Tax Payment Processing',
@@ -17,11 +18,17 @@ export const metadata: Metadata = {
     title: 'Payments - Property Tax Payment Processing',
     description: 'Secure property tax payment processing system with comprehensive transaction management.',
     type: 'website',
+    url: '/payments',
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Payments - Property Tax Payment Processing',
     description: 'Secure property tax payment processing system with comprehensive transaction management.',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: '/payments',
   },
 }
 

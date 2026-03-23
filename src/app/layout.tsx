@@ -4,33 +4,29 @@ import { Manrope } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { UIProvider } from '@/contexts/UIContext'
+import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/site'
 
 const manrope = Manrope({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://urbanledge.com'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'UrbanLedge - Professional Property Tax Management System',
-    template: '%s | UrbanLedge'
+    default: `${SITE_NAME} - Property Tax Management Platform`,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: 'Streamline property tax assessment, collection, and management with UrbanLedge. Professional municipal tax software for efficient property tax administration, payment processing, and financial reporting.',
+  description:
+    'Manage municipal property tax assessments, collections, and reporting in one platform built for city operations.',
   keywords: [
     'property tax management',
-    'municipal tax software',
-    'property assessment',
-    'tax collection',
-    'property management system',
     'municipal software',
-    'tax administration',
-    'property valuation',
-    'tax payment processing',
-    'urban planning software',
-    'local government software',
-    'property records management'
+    'tax assessment',
+    'tax collection',
+    'property records',
+    'local government platform',
   ],
-  authors: [{ name: 'UrbanLedge Team' }],
-  creator: 'UrbanLedge',
-  publisher: 'UrbanLedge',
+  authors: [{ name: `${SITE_NAME} Team` }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   formatDetection: {
     email: false,
     address: false,
@@ -41,30 +37,30 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://urbanledge.com',
-    title: 'UrbanLedge - Professional Property Tax Management System',
-    description: 'Streamline property tax assessment, collection, and management with UrbanLedge. Professional municipal tax software for efficient property tax administration.',
-    siteName: 'UrbanLedge',
+    url: SITE_URL,
+    title: `${SITE_NAME} - Property Tax Management Platform`,
+    description:
+      'A professional platform for property tax assessment, payment processing, and municipal reporting.',
+    siteName: SITE_NAME,
     images: [
       {
-        url: '/og-image.jpg',
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'UrbanLedge Property Tax Management System',
+        alt: `${SITE_NAME} dashboard`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'UrbanLedge - Professional Property Tax Management System',
-    description: 'Streamline property tax assessment, collection, and management with UrbanLedge. Professional municipal tax software for efficient property tax administration.',
-    images: ['/og-image.jpg'],
-    creator: '@urbanledge',
+    title: `${SITE_NAME} - Property Tax Management Platform`,
+    description:
+      'A professional platform for municipal tax assessment, payments, and reporting.',
+    images: [DEFAULT_OG_IMAGE],
   },
   robots: {
     index: true,
     follow: true,
-    nocache: true,
     googleBot: {
       index: true,
       follow: true,
@@ -74,12 +70,8 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-site-verification-code',
-    yandex: 'your-yandex-verification-code',
-  },
   alternates: {
-    canonical: 'https://urbanledge.com',
+    canonical: '/',
   },
 }
 
@@ -102,7 +94,7 @@ export default function RootLayout({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "UrbanLedge",
+    "name": SITE_NAME,
     "description": "Professional property tax management system for municipal governments",
     "applicationCategory": "GovernmentApplication",
     "operatingSystem": "Web Browser",
@@ -113,8 +105,8 @@ export default function RootLayout({
     },
     "provider": {
       "@type": "Organization",
-      "name": "UrbanLedge",
-      "url": "https://urbanledge.com"
+      "name": SITE_NAME,
+      "url": SITE_URL
     },
     "featureList": [
       "Property Assessment Management",
@@ -126,7 +118,8 @@ export default function RootLayout({
       "Exemption Management",
       "Audit Trail & Activity Logging"
     ],
-    "screenshot": "/og-image.jpg"
+    "screenshot": DEFAULT_OG_IMAGE,
+    "url": SITE_URL
   }
 
   return (
@@ -138,9 +131,7 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData),
           }}
         />
-        <link rel="canonical" href="https://urbanledge.vercel.app" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.ico" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
       </head>

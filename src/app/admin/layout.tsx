@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DEFAULT_OG_IMAGE } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Admin Panel - Property Tax Management System',
@@ -17,11 +18,21 @@ export const metadata: Metadata = {
     title: 'Admin Panel - Property Tax Management',
     description: 'Administrative control panel for comprehensive property tax management and system configuration.',
     type: 'website',
+    url: '/admin',
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Admin Panel - Property Tax Management',
     description: 'Administrative control panel for comprehensive property tax management and system configuration.',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: '/admin',
+  },
+  robots: {
+    index: false,
+    follow: false,
   },
 }
 
